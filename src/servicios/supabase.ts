@@ -7,4 +7,10 @@ if (!urlSupabase || !claveAnonima) {
   throw new Error('Faltan las variables de entorno de Supabase')
 }
 
-export const supabase = createClient(urlSupabase, claveAnonima)
+export const supabase = createClient(urlSupabase, claveAnonima, {
+  auth: {
+    storage: window.sessionStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+  }
+})
