@@ -2,28 +2,40 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import logo from '../assets/logo-NL.png'
 import { useLicores, type Licor } from '../hooks/useLicores'
+import { useVentas, type Venta } from '../hooks/useVentas'
 import { useContenido } from '../hooks/useContenido'
 import { useCategorias } from '../hooks/useCategorias'
+import * as XLSX from 'xlsx'
 import { supabase } from '../servicios/supabase'
 import { subirImagenLicor } from '../servicios/almacenamiento'
 import { useAutenticacion } from '../contextos/AutenticacionContexto'
-import { Plus, Edit, Trash2, LogOut, Package, Image as ImageIcon, Save, X, Layout, Search, Filter, Calendar, Tag } from 'lucide-react'
+import { Plus, Edit, Trash2, LogOut, Package, Image as ImageIcon, Save, X, Layout, Search, Filter, Calendar, Tag, FileDown, User, Phone, DollarSign, History } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { esquemaLicor, esquemaContenido, type DatosLicor, type DatosContenido } from '../utilidades/validaciones'
 import Swal from 'sweetalert2'
 
 const Admin = () => {
-  const { licores, refrescar, cargando: licoresCargando } = useLicores()
+  const { licores, refrescar: refrescarLicores, cargando: licoresCargando } = useLicores()
+  const { ventas, cargando: ventasCargando, agregarVenta, actualizarVenta, eliminarVenta } = useVentas()
   const { contenido, actualizarContenido } = useContenido()
   const { categorias: categoriasDB, agregarCategoria, eliminarCategoria } = useCategorias()
   const { cerrarSesion } = useAutenticacion()
 
-  const [pestaña, setPestaña] = useState<'licores' | 'contenido' | 'categorias'>('licores')
+  const [pestaña, setPestaña] = useState<'licores' | 'contenido' | 'categorias' | 'ventas'>('licores')
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [modalVentaAbierto, setModalVentaAbierto] = useState(false)
   const [licorEnEdicion, setLicorEnEdicion] = useState<Licor | null>(null)
+  const [ventaEnEdicion, setVentaEnEdicion] = useState<Venta | null>(null)
   const [archivoImagen, setArchivoImagen] = useState<File | null>(null)
   const [nuevaCatNombre, setNuevaCatNombre] = useState('')
+  const [formVenta, setFormVenta] = useState({
+    cliente_nombre: '',
+    cliente_telefono: '',
+    id_licor: '',
+    precio_venta: 0,
+    fecha_venta: new Date().toISOString().split('T')[0]
+  })
 
   const fechaHoy = new Date().toISOString().split('T')[0]
 
@@ -59,6 +71,29 @@ const Admin = () => {
     setModalAbierto(true)
   }
 
+  const abrirModalVenta = (venta?: Venta) => {
+    if (venta) {
+      setVentaEnEdicion(venta)
+      setFormVenta({
+        cliente_nombre: venta.cliente_nombre,
+        cliente_telefono: venta.cliente_telefono || '',
+        id_licor: venta.id_licor,
+        precio_venta: venta.precio_venta,
+        fecha_venta: venta.fecha_venta
+      })
+    } else {
+      setVentaEnEdicion(null)
+      setFormVenta({
+        cliente_nombre: '',
+        cliente_telefono: '',
+        id_licor: '',
+        precio_venta: 0,
+        fecha_venta: fechaHoy
+      })
+    }
+    setModalVentaAbierto(true)
+  }
+
   const guardarLicor = async (datos: DatosLicor) => {
     try {
       let urlFinal = licorEnEdicion?.imagen_url || ''
@@ -76,7 +111,7 @@ const Admin = () => {
         if (error) throw error
       }
 
-      await refrescar()
+      await refrescarLicores()
       setModalAbierto(false)
       setArchivoImagen(null)
       Swal.fire('¡Éxito!', 'Producto guardado', 'success')
@@ -99,7 +134,7 @@ const Admin = () => {
       const { error } = await supabase.from('Info_Licores').delete().eq('id', id)
       if (error) Swal.fire('Error', error.message, 'error')
       else {
-        await refrescar()
+        await refrescarLicores()
         Swal.fire('Eliminado', '', 'success')
       }
     }
@@ -149,6 +184,88 @@ const Admin = () => {
     }
   }
 
+  const gananciaTotal = ventas.reduce((acc, v) => acc + (v.precio_venta - (v.Info_Licores?.precio_compra || 0)), 0)
+
+  const exportarAExcel = () => {
+    const datosExportar: any[] = ventas.map(v => {
+      const precioCompra = v.Info_Licores?.precio_compra || 0;
+      const ganancia = v.precio_venta - precioCompra;
+      return {
+        Cliente: v.cliente_nombre,
+        Teléfono: v.cliente_telefono,
+        Producto: v.Info_Licores?.nombre_licor || 'N/A',
+        'Precio Compra': precioCompra,
+        'Precio Venta': v.precio_venta,
+        'Ganancia': ganancia,
+        Fecha: v.fecha_venta
+      }
+    })
+
+    datosExportar.push({
+      Cliente: 'TOTAL GANANCIA',
+      Teléfono: '',
+      Producto: '',
+      'Precio Compra': '',
+      'Precio Venta': '',
+      'Ganancia': gananciaTotal,
+      Fecha: ''
+    })
+
+    const ws = XLSX.utils.json_to_sheet(datosExportar)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, "Ventas")
+    XLSX.writeFile(wb, "Historico_Ventas_Naranjos.xlsx")
+    Swal.fire('¡Éxito!', 'Archivo Excel generado correctamente', 'success')
+  }
+
+  const handleGuardarVenta = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formVenta.id_licor || !formVenta.cliente_nombre) {
+      return Swal.fire('Error', 'Completa los campos obligatorios', 'error')
+    }
+
+    let res;
+    if (ventaEnEdicion) {
+      res = await actualizarVenta(ventaEnEdicion.id, formVenta)
+    } else {
+      res = await agregarVenta(formVenta)
+    }
+
+    if (res.success) {
+      setModalVentaAbierto(false)
+      setFormVenta({
+        cliente_nombre: '',
+        cliente_telefono: '',
+        id_licor: '',
+        precio_venta: 0,
+        fecha_venta: fechaHoy
+      })
+      Swal.fire('¡Éxito!', ventaEnEdicion ? 'Venta actualizada' : 'Venta registrada', 'success')
+    } else {
+      Swal.fire('Error', res.error, 'error')
+    }
+  }
+
+  const handleEliminarVenta = async (id: string) => {
+    const { isConfirmed } = await Swal.fire({
+      title: '¿Eliminar registro de venta?',
+      text: "Esta acción no se puede deshacer",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#c5a059',
+      confirmButtonText: 'Sí, eliminar'
+    })
+
+    if (isConfirmed) {
+      const res = await eliminarVenta(id)
+      if (res.success) {
+        Swal.fire('Eliminado', '', 'success')
+      } else {
+        Swal.fire('Error', res.error, 'error')
+      }
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -185,6 +302,12 @@ const Admin = () => {
           >
             <Layout size={18} /> Landing
           </button>
+          <button
+            onClick={() => setPestaña('ventas')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${pestaña === 'ventas' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white'}`}
+          >
+            <History size={18} /> Histórico
+          </button>
         </div>
 
         <button onClick={cerrarSesion} className="text-white/40 hover:text-red-400 transition-colors flex items-center gap-2">
@@ -194,7 +317,6 @@ const Admin = () => {
 
       {pestaña === 'licores' ? (
         <div className="space-y-6">
-          {/* Header de Licores: Filtros */}
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-end">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
               <div className="space-y-1">
@@ -226,7 +348,6 @@ const Admin = () => {
             </button>
           </div>
 
-          {/* Tabla */}
           <div className="vidrio rounded-2xl overflow-x-auto border border-white/10">
             <table className="w-full text-left text-sm">
               <thead className="bg-white/5 text-dorado uppercase text-[10px] tracking-widest">
@@ -241,15 +362,11 @@ const Admin = () => {
               </thead>
               <tbody>
                 {licoresCargando ? (
-                  // Skeleton Rows
                   [1, 2, 3, 4, 5].map((i) => (
                     <tr key={`sk-${i}`} className="animate-pulse border-b border-white/5 last:border-0">
                       <td className="px-6 py-4 flex items-center gap-4">
                         <div className="w-10 h-10 rounded-lg bg-white/5" />
-                        <div className="space-y-2">
-                          <div className="h-4 w-32 bg-white/5 rounded" />
-                          <div className="h-3 w-16 bg-white/5 rounded" />
-                        </div>
+                        <div className="space-y-2"><div className="h-4 w-32 bg-white/5 rounded" /><div className="h-3 w-16 bg-white/5 rounded" /></div>
                       </td>
                       <td className="px-6 py-4"><div className="h-4 w-20 bg-white/5 mx-auto rounded" /></td>
                       <td className="px-6 py-4"><div className="h-4 w-16 bg-white/5 mx-auto rounded" /></td>
@@ -305,7 +422,7 @@ const Admin = () => {
               <input
                 value={nuevaCatNombre}
                 onChange={(e) => setNuevaCatNombre(e.target.value)}
-                placeholder="Nombre de la categoría (ej: Gin, Tequila...)"
+                placeholder="Nombre de la categoría"
                 className="flex-grow bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none"
               />
               <button className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-2 rounded-xl font-bold transition-all">
@@ -313,7 +430,6 @@ const Admin = () => {
               </button>
             </form>
           </div>
-
           <div className="vidrio p-8 rounded-3xl border border-white/10">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <Tag className="text-dorado" /> Categorías Existentes
@@ -322,18 +438,13 @@ const Admin = () => {
               {categoriasDB.map(cat => (
                 <div key={cat.id} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 group hover:border-dorado/30 transition-all">
                   <span className="font-medium">{cat.nombre}</span>
-                  <button
-                    onClick={() => handleEliminarCategoria(cat.id, cat.nombre)}
-                    className="text-white/20 hover:text-red-400 transition-colors p-2"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <button onClick={() => handleEliminarCategoria(cat.id, cat.nombre)} className="text-white/20 hover:text-red-400 p-2"><Trash2 size={16} /></button>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      ) : (
+      ) : pestaña === 'contenido' ? (
         <div className="max-w-2xl mx-auto vidrio p-8 rounded-3xl border border-white/10">
           <h2 className="text-xl font-bold mb-8 flex items-center gap-2">
             <Layout className="text-dorado" /> Ajustes de la Landing Page
@@ -355,6 +466,108 @@ const Admin = () => {
               <Save size={20} /> {subiendoContenido ? 'Guardando...' : 'Guardar Ajustes'}
             </button>
           </form>
+        </div>
+      ) : (/*parte de historico de ventas*/
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <History className="text-dorado" /> Histórico de Ventas
+              </h2>
+              <div className="bg-green-500/10 border border-green-500/20 px-4 py-1.5 rounded-xl flex items-center gap-2">
+                <span className="text-white/60 text-sm">Ganancia Total:</span>
+                <span className="text-green-400 font-bold">${gananciaTotal.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={exportarAExcel} className="bg-white/5 hover:bg-white/10 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all border border-white/10">
+                <FileDown size={20} /> Exportar Excel
+              </button>
+              <button onClick={() => abrirModalVenta()} className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all">
+                <Plus size={20} /> Registrar Venta
+              </button>
+            </div>
+          </div>
+
+          <div className="vidrio rounded-2xl overflow-x-auto border border-white/10">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-white/5 text-dorado uppercase text-[10px] tracking-widest">
+                <tr>
+                  <th className="px-6 py-4">Cliente</th>
+                  <th className="px-6 py-4">Teléfono</th>
+                  <th className="px-6 py-4">Licor</th>
+                  <th className="px-6 py-4 text-center">Precio Compra</th>
+                  <th className="px-6 py-4 text-center">Precio Venta (Real)</th>
+                  <th className="px-6 py-4 text-center">Ganancia</th>
+                  <th className="px-6 py-4 text-center">Fecha de venta</th>
+                  <th className="px-6 py-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ventasCargando ? (
+                  [1, 2, 3].map((i) => (
+                    <tr key={`skv-${i}`} className="animate-pulse border-b border-white/5 last:border-0">
+                      <td className="px-6 py-4"><div className="h-4 w-32 bg-white/5 rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-4 w-24 bg-white/5 rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-4 w-40 bg-white/5 rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-4 w-16 bg-white/5 mx-auto rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-4 w-16 bg-white/5 mx-auto rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-4 w-16 bg-white/5 mx-auto rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-4 w-20 bg-white/5 mx-auto rounded" /></td>
+                      <td className="px-6 py-4"><div className="h-4 w-10 bg-white/5 ml-auto rounded" /></td>
+                    </tr>
+                  ))
+                ) : (
+                  ventas.map((venta, index) => {
+                    const precioCompra = venta.Info_Licores?.precio_compra || 0;
+                    const ganancia = venta.precio_venta - precioCompra;
+
+                    return (
+                      <motion.tr
+                        key={venta.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="hover:bg-white/2 transition-colors border-b border-white/5 last:border-0"
+                      >
+                        <td className="px-6 py-4 font-bold">{venta.cliente_nombre}</td>
+                        <td className="px-6 py-4">
+                          {venta.cliente_telefono ? (
+                            <a
+                              href={`https://wa.me/${venta.cliente_telefono.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-400 hover:text-green-400 hover:underline transition-colors"
+                              title="Abrir chat en WhatsApp"
+                            >
+                              {venta.cliente_telefono}
+                            </a>
+                          ) : (
+                            <span className="text-white/60">N/A</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">{venta.Info_Licores?.nombre_licor || 'Producto Eliminado'}</td>
+                        <td className="px-6 py-4 text-center font-bold text-dorado">${precioCompra.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-center font-bold text-dorado">${venta.precio_venta.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-center font-bold text-green-400">${ganancia.toLocaleString()}</td>
+                        <td className="px-6 py-4 text-center text-white/40">{venta.fecha_venta}</td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end gap-1">
+                            <button onClick={() => abrirModalVenta(venta)} className="p-2 text-white/100 hover:text-dorado transition-colors">
+                              <Edit size={16} />
+                            </button>
+                            <button onClick={() => handleEliminarVenta(venta.id)} className="p-2 text-white/100 hover:text-red-400 transition-colors">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -397,12 +610,12 @@ const Admin = () => {
                 </select>
               </div>
               <div className="col-span-2 space-y-1">
-                <label className="text-white/40">Descripción del licor (Corta y separa por comas cada característica)</label>
+                <label className="text-white/40">Descripción breve</label>
                 <textarea {...register('descripcion')} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" />
               </div>
               <div className="col-span-2 space-y-1">
-                <label className="text-white/40">Historia "Stroytelling" Completa de la Botella</label>
-                <textarea {...register('historia')} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" placeholder="Escribe aquí la historia legendaria de este licor..." />
+                <label className="text-white/40">Historia Completa</label>
+                <textarea {...register('historia')} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" />
               </div>
               <div className="col-span-2 space-y-2">
                 <label className="text-white/40">Imagen</label>
@@ -419,6 +632,51 @@ const Admin = () => {
               </div>
               <button disabled={isSubmitting} className="col-span-2 bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-3 rounded-xl mt-4 flex items-center justify-center gap-2">
                 <Save size={18} /> {isSubmitting ? 'Guardando...' : 'Confirmar Cambios'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Nueva Venta */}
+      {modalVentaAbierto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
+          <div className="max-w-md w-full bg-negro-premium border border-dorado/20 rounded-3xl p-8 shadow-2xl relative">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold gradiente-dorado text-center w-full">{ventaEnEdicion ? 'Editar Registro de Venta' : 'Registrar Nueva Venta'}</h2>
+              <button onClick={() => setModalVentaAbierto(false)} className="absolute right-6 top-6 text-white/40 hover:text-white transition-colors">
+                <X size={24} />
+              </button>
+            </div>
+            <form onSubmit={handleGuardarVenta} className="space-y-4 text-sm">
+              <div className="space-y-1">
+                <label className="text-white/40 flex items-center gap-2"><User size={14} /> Nombre del Cliente</label>
+                <input required value={formVenta.cliente_nombre} onChange={e => setFormVenta({ ...formVenta, cliente_nombre: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-white/40 flex items-center gap-2"><Phone size={14} /> Teléfono</label>
+                <input value={formVenta.cliente_telefono} onChange={e => setFormVenta({ ...formVenta, cliente_telefono: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-white/40 flex items-center gap-2"><Package size={14} /> Producto</label>
+                <select required value={formVenta.id_licor} onChange={e => {
+                  const licor = licores.find(l => l.id === e.target.value)
+                  setFormVenta({ ...formVenta, id_licor: e.target.value, precio_venta: licor?.precio_venta || 0 })
+                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none appearance-none">
+                  <option value="" disabled className="bg-negro-premium">Selecciona un licor</option>
+                  {licores.map(l => <option key={l.id} value={l.id} className="bg-negro-premium">{l.nombre_licor} (${l.precio_venta.toLocaleString()})</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-white/40 flex items-center gap-2"><DollarSign size={14} /> Precio Real</label>
+                <input type="number" required value={formVenta.precio_venta} onChange={e => setFormVenta({ ...formVenta, precio_venta: Number(e.target.value) })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-white/40 flex items-center gap-2"><Calendar size={14} /> Fecha</label>
+                <input type="date" required max={fechaHoy} value={formVenta.fecha_venta} onChange={e => setFormVenta({ ...formVenta, fecha_venta: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+              </div>
+              <button className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-3 rounded-xl mt-6">
+                {ventaEnEdicion ? 'Actualizar Venta' : 'Registrar Venta'}
               </button>
             </form>
           </div>
