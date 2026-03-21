@@ -5,10 +5,11 @@ import { esquemaAcceso } from '../utilidades/validaciones'
 import type { DatosAcceso } from '../utilidades/validaciones'
 import { supabase } from '../servicios/supabase'
 import { useNavigate } from 'react-router-dom'
-import { Wine, Mail, Lock, AlertCircle } from 'lucide-react'
+import { Mail, Lock, AlertCircle } from 'lucide-react'
 import Swal from 'sweetalert2'
 
 import { motion } from 'framer-motion'
+import logo from '../assets/logo-NL.png'
 
 const Acceso = () => {
   const [estaRegistrando, setEstaRegistrando] = useState(false)
@@ -56,7 +57,7 @@ const Acceso = () => {
         className="max-w-md w-full vidrio p-8 rounded-3xl border border-white/10 shadow-2xl"
       >
         <div className="text-center mb-8">
-          <Wine className="text-dorado mx-auto mb-4" size={48} />
+          <img src={logo} width={100} height={100} className="mx-auto mb-4" alt="Logo Naranjo's Liquors" />
           <h1 className="text-3xl font-bold gradiente-dorado">Naranjo's Admin</h1>
           <p className="text-white/40 mt-2">
             {estaRegistrando ? 'Crea una cuenta administrativa' : 'Ingresa a tu panel de control'}

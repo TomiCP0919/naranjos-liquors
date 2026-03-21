@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import logo from '../assets/logo-NL.png'
 import { useLicores, type Licor } from '../hooks/useLicores'
 import { useContenido } from '../hooks/useContenido'
 import { useCategorias } from '../hooks/useCategorias'
@@ -156,7 +157,7 @@ const Admin = () => {
     >
       <header className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12 vidrio p-3 rounded-2xl border border-white/10">
         <div className="flex items-center gap-4">
-          <img src="src/assets/logo-NL.png" width={90} height={90} />
+          <img src={logo} width={90} height={90} alt="Logo Naranjo's Liquors" />
           <div>
             <h1 className="text-2xl font-bold gradiente-dorado">Administración</h1>
             <p className="text-white/40 text-sm">Naranjo's Liquors Control Panel</p>

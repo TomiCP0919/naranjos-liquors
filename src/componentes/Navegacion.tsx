@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
+import logo from '../assets/logo-NL.png'
 
 const Navegacion = () => {
   return (
     <nav className="fixed top-0 w-full z-50 vidrio border-b border-white/10 px-6 py-4 flex justify-between items-center">
       <Link to="/" className="flex items-center gap-2 group">
-        <img src = "src/assets/logo-NL.png" width={85} height={85}></img>
+        <img src={logo} width={85} height={85} alt="Logo Naranjo's Liquors" />
         <span className="text-2xl font-bold gradiente-dorado tracking-tighter ">
           NARANJO'S <span className="text-white/80 font-light">LIQUORS</span>
         </span> 
