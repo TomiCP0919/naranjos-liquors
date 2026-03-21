@@ -22,7 +22,30 @@ const RutaProtegida: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
 function ContenidoApp() {
   const location = useLocation()
+  const hostname = window.location.hostname
   
+  // Detectamos si estamos en el subdominio de administración 
+  // (Funciona para admin.naranjos-liquors.com o similares)
+  const esSubdominioAdmin = hostname.startsWith('admin.') || hostname.includes('admin-')
+
+  if (esSubdominioAdmin) {
+    return (
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/acceso" element={<Acceso />} />
+          <Route 
+            path="/*" 
+            element={
+              <RutaProtegida>
+                <Admin />
+              </RutaProtegida>
+            } 
+          />
+        </Routes>
+      </AnimatePresence>
+    )
+  }
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
