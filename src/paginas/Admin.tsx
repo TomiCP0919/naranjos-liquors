@@ -9,7 +9,7 @@ import * as XLSX from 'xlsx'
 import { supabase } from '../servicios/supabase'
 import { subirImagenLicor } from '../servicios/almacenamiento'
 import { useAutenticacion } from '../contextos/AutenticacionContexto'
-import { Plus, Edit, Trash2, LogOut, Package, Image as ImageIcon, Save, X, Layout, Search, Filter, Calendar, Tag, FileDown, User, Phone, DollarSign, History } from 'lucide-react'
+import { Plus, Edit, Trash2, LogOut, Package, Image as ImageIcon, Save, X, Layout, Search, Filter, Calendar, Tag, FileDown, User, Phone, DollarSign, History, AlertTriangle } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { esquemaLicor, esquemaContenido, type DatosLicor, type DatosContenido } from '../utilidades/validaciones'
@@ -314,6 +314,44 @@ const Admin = () => {
           <LogOut size={20} /> <span className="hidden md:inline">Cerrar Sesión</span>
         </button>
       </header>
+
+      {/* Alertas Globales de Inventario */}
+      {licores.filter(l => l.stock === 0).length > 0 && (
+        <div className="mb-8 space-y-3">
+          {licores.filter(l => l.stock === 0).map(licor => (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              key={`alert-${licor.id}`}
+              className="bg-red-500/10 border border-red-500/20 px-6 py-4 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-3 text-red-400">
+                <AlertTriangle size={24} className="shrink-0" />
+                <p className="text-sm">
+                  Alerta: El licor <strong className="font-bold text-white">{licor.nombre_licor}</strong> está <strong className="text-red-400">agotado (Stock 0)</strong> y ya no se puede despachar a los clientes. Reabastécelo o elimínalo.
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0 w-full md:w-auto">
+                <button
+                  onClick={() => {
+                    setPestaña('licores');
+                    abrirModal(licor);
+                  }}
+                  className="flex-1 md:flex-none text-xs bg-dorado/10 text-dorado hover:bg-dorado/20 px-4 py-2 rounded-lg transition-colors font-bold flex items-center justify-center gap-2 border border-dorado/20"
+                >
+                  <Edit size={14} /> Editar
+                </button>
+                <button
+                  onClick={() => eliminarLicor(licor.id)}
+                  className="flex-1 md:flex-none text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 px-4 py-2 rounded-lg transition-colors font-bold flex items-center justify-center gap-2 border border-red-500/20"
+                >
+                  <Trash2 size={14} /> Eliminar
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {pestaña === 'licores' ? (
         <div className="space-y-6">
