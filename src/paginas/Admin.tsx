@@ -3,13 +3,14 @@ import { motion } from 'framer-motion'
 import logo from '../assets/logo-NL.png'
 import { useLicores, type Licor } from '../hooks/useLicores'
 import { useVentas, type Venta } from '../hooks/useVentas'
+import { usePerfiles } from '../hooks/usePerfiles'
 import { useContenido } from '../hooks/useContenido'
 import { useCategorias } from '../hooks/useCategorias'
 import * as XLSX from 'xlsx'
 import { supabase } from '../servicios/supabase'
 import { subirImagenLicor } from '../servicios/almacenamiento'
 import { useAutenticacion } from '../contextos/AutenticacionContexto'
-import { Plus, Edit, Trash2, LogOut, Package, Image as ImageIcon, Save, X, Layout, Search, Filter, Calendar, Tag, FileDown, User, Phone, DollarSign, History, AlertTriangle } from 'lucide-react'
+import { Plus, Edit, Trash2, LogOut, Package, Image as ImageIcon, Save, X, Layout, Search, Filter, Calendar, Tag, FileDown, User, Phone, DollarSign, History, AlertTriangle, Users, Check } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { esquemaLicor, esquemaContenido, type DatosLicor, type DatosContenido } from '../utilidades/validaciones'
@@ -21,8 +22,9 @@ const Admin = () => {
   const { contenido, actualizarContenido } = useContenido()
   const { categorias: categoriasDB, agregarCategoria, eliminarCategoria } = useCategorias()
   const { cerrarSesion } = useAutenticacion()
+  const { perfiles, cargando: perfilesCargando, cambiarEstado, eliminarPerfil } = usePerfiles()
 
-  const [pestaña, setPestaña] = useState<'licores' | 'contenido' | 'categorias' | 'ventas'>('licores')
+  const [pestaña, setPestaña] = useState<'licores' | 'contenido' | 'categorias' | 'ventas' | 'accesos'>('licores')
   const [modalAbierto, setModalAbierto] = useState(false)
   const [modalVentaAbierto, setModalVentaAbierto] = useState(false)
   const [licorEnEdicion, setLicorEnEdicion] = useState<Licor | null>(null)
@@ -266,6 +268,31 @@ const Admin = () => {
     }
   }
 
+  const handleClickAprobar = async (id: string, email: string) => {
+    const res = await cambiarEstado(id, 'aprobado')
+    if (res.success) Swal.fire('Aprobado', `El usuario ${email} ahora tiene acceso al panel.`, 'success')
+  }
+
+  const handleClickRechazar = async (id: string, email: string) => {
+    const res = await cambiarEstado(id, 'rechazado')
+    if (res.success) Swal.fire('Rechazado', `Se ha denegado el acceso al usuario ${email}.`, 'success')
+  }
+
+  const handleClickEliminarPerfil = async (id: string, email: string) => {
+    const { isConfirmed } = await Swal.fire({
+      title: '¿Eliminar registro?',
+      text: `¿Deseas borrar a ${email} del historial? Esto no borra su cuenta principal, solo elimina este registro de acceso.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      confirmButtonColor: '#ef4444'
+    })
+    if (isConfirmed) {
+       await eliminarPerfil(id)
+       Swal.fire('Eliminado', '', 'success')
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -307,6 +334,12 @@ const Admin = () => {
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${pestaña === 'ventas' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white'}`}
           >
             <History size={18} /> Histórico
+          </button>
+          <button
+            onClick={() => setPestaña('accesos')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${pestaña === 'accesos' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white'}`}
+          >
+            <Users size={18} /> Accesos
           </button>
         </div>
 
@@ -505,7 +538,7 @@ const Admin = () => {
             </button>
           </form>
         </div>
-      ) : (/*parte de historico de ventas*/
+      ) : pestaña === 'ventas' ? (/*parte de historico de ventas*/
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-4">
@@ -605,6 +638,66 @@ const Admin = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      ) : null}
+
+      {pestaña === 'accesos' && (
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Users className="text-dorado" /> Gestión de Accesos
+            </h2>
+          </div>
+          <div className="vidrio p-6 rounded-2xl border border-white/10 overflow-hidden">
+            {perfilesCargando ? (
+               <p className="text-center text-white/40 border border-dashed border-white/10 py-8 rounded-xl">Cargando perfiles...</p>
+            ) : perfiles.length === 0 ? (
+               <p className="text-center text-white/40 border border-dashed border-white/10 py-8 rounded-xl">No hay cuentas administrativas registradas.</p>
+            ) : (
+                <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[600px]">
+                  <thead>
+                     <tr className="border-b border-white/10 text-white/40 text-sm">
+                        <th className="py-3 px-4 font-normal">Correo Electrónico</th>
+                        <th className="py-3 px-4 font-normal">Estado actual</th>
+                        <th className="py-3 px-4 font-normal">Fecha de Solicitud</th>
+                        <th className="py-3 px-4 text-right font-normal">Acciones Administrativas</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {perfiles.map(p => (
+                        <tr key={p.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                           <td className="py-3 px-4 font-medium text-white">{p.email}</td>
+                           <td className="py-3 px-4">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${p.estado === 'aprobado' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : p.estado === 'rechazado' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'}`}>
+                                 {p.estado}
+                              </span>
+                           </td>
+                           <td className="py-3 px-4 text-white/60">
+                              {new Date(p.created_at).toLocaleDateString()}
+                           </td>
+                           <td className="py-3 px-4 text-right flex justify-end gap-2">
+                              {p.estado !== 'aprobado' && (
+                                 <button onClick={() => handleClickAprobar(p.id, p.email)} className="bg-green-500/10 hover:bg-green-500/20 text-green-400 p-2 rounded-lg transition-colors border border-green-500/20" title="Aprobar Acceso">
+                                    <Check size={16} />
+                                 </button>
+                              )}
+                              {p.estado !== 'rechazado' && (
+                                 <button onClick={() => handleClickRechazar(p.id, p.email)} className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 p-2 rounded-lg transition-colors border border-orange-500/20" title="Rechazar y Revocar Acceso">
+                                    <X size={16} />
+                                 </button>
+                              )}
+                              <button onClick={() => handleClickEliminarPerfil(p.id, p.email)} className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors border border-red-500/20" title="Eliminar registro del historial">
+                                 <Trash2 size={16} />
+                              </button>
+                           </td>
+                        </tr>
+                     ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
