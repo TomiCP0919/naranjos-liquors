@@ -43,6 +43,35 @@ const Acceso = () => {
     }
   }
 
+  const handleRecuperarPassword = async () => {
+    const { value: email } = await Swal.fire({
+      title: 'Recuperar Contraseña',
+      input: 'email',
+      inputLabel: 'Ingresa tu correo electrónico registrado',
+      inputPlaceholder: 'ejemplo@naranjos.com',
+      showCancelButton: true,
+      confirmButtonText: 'Enviar Enlace de Recuperación',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#c5a059',
+      background: '#0a0a0a',
+      color: '#ffffff',
+      inputValidator: (value) => {
+        if (!value) return 'Por favor, ingresa tu correo electrónico'
+      }
+    })
+
+    if (email) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/admin'
+      })
+      if (error) {
+        Swal.fire('Error', error.message, 'error')
+      } else {
+        Swal.fire('¡Correo enviado!', 'Revisa tu bandeja de entrada o carpeta de spam para restablecer tu contraseña.', 'success')
+      }
+    }
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0, scale: 0.95 }}
@@ -109,12 +138,22 @@ const Acceso = () => {
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm">
+        <div className="mt-8 text-center text-sm flex flex-col gap-4">
+          {!estaRegistrando && (
+            <button 
+              type="button"
+              onClick={handleRecuperarPassword}
+              className="text-dorado hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
           <button 
+            type="button"
             onClick={() => setEstaRegistrando(!estaRegistrando)}
             className="text-dorado hover:underline"
           >
-            {estaRegistrando ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Registrate'}
+            {estaRegistrando ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
           </button>
         </div>
       </motion.div>
