@@ -24,6 +24,8 @@ const Admin = () => {
   const [licorEnEdicion, setLicorEnEdicion] = useState<Licor | null>(null)
   const [archivoImagen, setArchivoImagen] = useState<File | null>(null)
   const [nuevaCatNombre, setNuevaCatNombre] = useState('')
+  
+  const fechaHoy = new Date().toISOString().split('T')[0]
 
   // Filtros
   const [filtroNombre, setFiltroNombre] = useState('')
@@ -206,7 +208,7 @@ const Admin = () => {
                 <label className="text-[10px] uppercase text-white/40 ml-1">Fecha Compra</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
-                  <input type="date" value={filtroFecha} onChange={(e) => setFiltroFecha(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-dorado focus:outline-none" />
+                  <input type="date" value={filtroFecha} max={fechaHoy} onChange={(e) => setFiltroFecha(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-dorado focus:outline-none" />
                 </div>
               </div>
               <div className="space-y-1">
@@ -379,7 +381,7 @@ const Admin = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-white/40">Fecha Compra</label>
-                <input type="date" {...register('fecha_compra')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input type="date" {...register('fecha_compra')} max={fechaHoy} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40">Stock</label>
