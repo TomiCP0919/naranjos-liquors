@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dorado: #c5a059;
+  --color-dorado-brillante: #e2c275;
+  --color-negro-premium: #0a0a0a;
+}
+
+:root {
+  background-color: var(--color-negro-premium);
+  color: white;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  scroll-behavior: smooth;
+}
+
+.vidrio {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gradiente-dorado {
+  background: linear-gradient(135deg, #c5a059 0%, #e2c275 50%, #c5a059 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
