@@ -24,7 +24,7 @@ const Admin = () => {
   const [licorEnEdicion, setLicorEnEdicion] = useState<Licor | null>(null)
   const [archivoImagen, setArchivoImagen] = useState<File | null>(null)
   const [nuevaCatNombre, setNuevaCatNombre] = useState('')
-  
+
   const fechaHoy = new Date().toISOString().split('T')[0]
 
   // Filtros
@@ -397,11 +397,11 @@ const Admin = () => {
                 </select>
               </div>
               <div className="col-span-2 space-y-1">
-                <label className="text-white/40">Descripción Storytelling (Corta)</label>
+                <label className="text-white/40">Descripción del licor (Corta y separa por comas cada característica)</label>
                 <textarea {...register('descripcion')} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" />
               </div>
               <div className="col-span-2 space-y-1">
-                <label className="text-white/40">Historia Completa de la Botella</label>
+                <label className="text-white/40">Historia "Stroytelling" Completa de la Botella</label>
                 <textarea {...register('historia')} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" placeholder="Escribe aquí la historia legendaria de este licor..." />
               </div>
               <div className="col-span-2 space-y-2">
