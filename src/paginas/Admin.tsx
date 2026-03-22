@@ -405,9 +405,29 @@ const Admin = () => {
                 <label className="text-[10px] uppercase text-white/40 ml-1">Fecha Compra</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
-                  <input type="date" value={filtroFecha} max={fechaHoy} onChange={(e) => setFiltroFecha(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-dorado focus:outline-none" />
+                  <input
+                    type="date"
+                    value={filtroFecha}
+                    max={fechaHoy}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (!val || val <= fechaHoy) setFiltroFecha(val)
+                    }}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm focus:border-dorado focus:outline-none"
+                  />
+                  {filtroFecha && (
+                    <button
+                      type="button"
+                      onClick={() => setFiltroFecha('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/80 transition-colors"
+                      title="Quitar filtro de fecha"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
+
               <div className="space-y-1">
                 <label className="text-[10px] uppercase text-white/40 ml-1">Categoría</label>
                 <div className="relative">
@@ -731,7 +751,20 @@ const Admin = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-white/40">Fecha Compra</label>
-                <input type="date" {...register('fecha_compra')} max={fechaHoy} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
+                <input
+                  type="date"
+                  {...register('fecha_compra')}
+                  max={fechaHoy}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (!val || val <= fechaHoy) {
+                      e.target.value = val
+                    } else {
+                      e.target.value = fechaHoy
+                    }
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
+                />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40">Stock</label>
@@ -810,7 +843,17 @@ const Admin = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-white/40 flex items-center gap-2"><Calendar size={14} /> Fecha</label>
-                <input type="date" required max={fechaHoy} value={formVenta.fecha_venta} onChange={e => setFormVenta({ ...formVenta, fecha_venta: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
+                <input
+                  type="date"
+                  required
+                  max={fechaHoy}
+                  value={formVenta.fecha_venta}
+                  onChange={e => {
+                    const val = e.target.value
+                    if (!val || val <= fechaHoy) setFormVenta({ ...formVenta, fecha_venta: val })
+                  }}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
+                />
               </div>
               <button className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-4 rounded-xl mt-4 text-base">
                 {ventaEnEdicion ? 'Actualizar Venta' : 'Registrar Venta'}
