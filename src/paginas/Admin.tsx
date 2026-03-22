@@ -239,7 +239,7 @@ const Admin = () => {
         cliente_nombre: '',
         cliente_telefono: '',
         id_licor: '',
-        precio_venta: 0,
+        precio_venta:0,
         fecha_venta: fechaHoy
       })
       Swal.fire('¡Éxito!', ventaEnEdicion ? 'Venta actualizada' : 'Venta registrada', 'success')
@@ -288,8 +288,8 @@ const Admin = () => {
       confirmButtonColor: '#ef4444'
     })
     if (isConfirmed) {
-       await eliminarPerfil(id)
-       Swal.fire('Eliminado', '', 'success')
+      await eliminarPerfil(id)
+      Swal.fire('Eliminado', '', 'success')
     }
   }
 
@@ -301,51 +301,55 @@ const Admin = () => {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-negro-premium text-white p-4 md:p-8"
     >
-      <header className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12 vidrio p-3 rounded-2xl border border-white/10">
-        <div className="flex items-center gap-4">
-          <img src={logo} width={90} height={90} alt="Logo Naranjo's Liquors" />
-          <div>
-            <h1 className="text-2xl font-bold gradiente-dorado">Administración</h1>
-            <p className="text-white/40 text-sm">Naranjo's Liquors Control Panel</p>
+      <header className="flex flex-col gap-4 mb-8 vidrio p-4 rounded-2xl border border-white/10">
+        {/* Fila superior: Logo + Cerrar Sesión */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={logo} width={60} height={60} alt="Logo Naranjo's Liquors" className="md:w-[80px] md:h-[80px]" />
+            <div>
+              <h1 className="text-lg md:text-2xl font-bold gradiente-dorado">Administración</h1>
+              <p className="text-white/40 text-xs md:text-sm">Naranjo's Liquors Control Panel</p>
+            </div>
           </div>
+          <button onClick={cerrarSesion} className="flex items-center gap-2 text-white/50 hover:text-red-400 transition-colors bg-white/5 hover:bg-red-500/10 px-3 py-2 rounded-xl border border-white/10 hover:border-red-500/20 text-sm font-medium">
+            <LogOut size={18} />
+            <span>Cerrar Sesión</span>
+          </button>
         </div>
 
-        <div className="flex gap-2 bg-white/5 p-1 rounded-xl">
+        {/* Fila inferior: Pestañas de Navegación */}
+        <div className="flex bg-white/5 p-1 rounded-xl overflow-x-auto gap-1">
           <button
             onClick={() => setPestaña('licores')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${pestaña === 'licores' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white'}`}
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all shrink-0 text-sm font-medium ${pestaña === 'licores' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
           >
-            <Package size={18} /> Licores
+            <Package size={16} /> Licores
           </button>
           <button
             onClick={() => setPestaña('categorias')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${pestaña === 'categorias' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white'}`}
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all shrink-0 text-sm font-medium ${pestaña === 'categorias' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
           >
-            <Tag size={18} /> Categorías
+            <Tag size={16} /> Categorías
           </button>
           <button
             onClick={() => setPestaña('contenido')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${pestaña === 'contenido' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white'}`}
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all shrink-0 text-sm font-medium ${pestaña === 'contenido' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
           >
-            <Layout size={18} /> Landing
+            <Layout size={16} /> Landing
           </button>
           <button
             onClick={() => setPestaña('ventas')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${pestaña === 'ventas' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white'}`}
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all shrink-0 text-sm font-medium ${pestaña === 'ventas' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
           >
-            <History size={18} /> Histórico
+            <History size={16} /> Histórico
           </button>
           <button
             onClick={() => setPestaña('accesos')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${pestaña === 'accesos' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white'}`}
+            className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-all shrink-0 text-sm font-medium ${pestaña === 'accesos' ? 'bg-dorado text-negro-premium font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
           >
-            <Users size={18} /> Accesos
+            <Users size={16} /> Accesos
           </button>
         </div>
-
-        <button onClick={cerrarSesion} className="text-white/40 hover:text-red-400 transition-colors flex items-center gap-2">
-          <LogOut size={20} /> <span className="hidden md:inline">Cerrar Sesión</span>
-        </button>
       </header>
 
       {/* Alertas Globales de Inventario */}
@@ -420,7 +424,7 @@ const Admin = () => {
           </div>
 
           <div className="vidrio rounded-2xl overflow-x-auto border border-white/10">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm min-w-[800px]">
               <thead className="bg-white/5 text-dorado uppercase text-[10px] tracking-widest">
                 <tr>
                   <th className="px-6 py-4">Producto</th>
@@ -561,7 +565,7 @@ const Admin = () => {
           </div>
 
           <div className="vidrio rounded-2xl overflow-x-auto border border-white/10">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-left text-sm min-w-[1000px]">
               <thead className="bg-white/5 text-dorado uppercase text-[10px] tracking-widest">
                 <tr>
                   <th className="px-6 py-4">Cliente</th>
@@ -651,49 +655,49 @@ const Admin = () => {
           </div>
           <div className="vidrio p-6 rounded-2xl border border-white/10 overflow-hidden">
             {perfilesCargando ? (
-               <p className="text-center text-white/40 border border-dashed border-white/10 py-8 rounded-xl">Cargando perfiles...</p>
+              <p className="text-center text-white/40 border border-dashed border-white/10 py-8 rounded-xl">Cargando perfiles...</p>
             ) : perfiles.length === 0 ? (
-               <p className="text-center text-white/40 border border-dashed border-white/10 py-8 rounded-xl">No hay cuentas administrativas registradas.</p>
+              <p className="text-center text-white/40 border border-dashed border-white/10 py-8 rounded-xl">No hay cuentas administrativas registradas.</p>
             ) : (
-                <div className="overflow-x-auto">
+              <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse min-w-[600px]">
                   <thead>
-                     <tr className="border-b border-white/10 text-white/40 text-sm">
-                        <th className="py-3 px-4 font-normal">Correo Electrónico</th>
-                        <th className="py-3 px-4 font-normal">Estado actual</th>
-                        <th className="py-3 px-4 font-normal">Fecha de Solicitud</th>
-                        <th className="py-3 px-4 text-right font-normal">Acciones Administrativas</th>
-                     </tr>
+                    <tr className="border-b border-white/10 text-white/40 text-sm">
+                      <th className="py-3 px-4 font-normal">Correo Electrónico</th>
+                      <th className="py-3 px-4 font-normal">Estado actual</th>
+                      <th className="py-3 px-4 font-normal">Fecha de Solicitud</th>
+                      <th className="py-3 px-4 text-right font-normal">Acciones Administrativas</th>
+                    </tr>
                   </thead>
                   <tbody>
-                     {perfiles.map(p => (
-                        <tr key={p.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
-                           <td className="py-3 px-4 font-medium text-white">{p.email}</td>
-                           <td className="py-3 px-4">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${p.estado === 'aprobado' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : p.estado === 'rechazado' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'}`}>
-                                 {p.estado}
-                              </span>
-                           </td>
-                           <td className="py-3 px-4 text-white/60">
-                              {new Date(p.created_at).toLocaleDateString()}
-                           </td>
-                           <td className="py-3 px-4 text-right flex justify-end gap-2">
-                              {p.estado !== 'aprobado' && (
-                                 <button onClick={() => handleClickAprobar(p.id, p.email)} className="bg-green-500/10 hover:bg-green-500/20 text-green-400 p-2 rounded-lg transition-colors border border-green-500/20" title="Aprobar Acceso">
-                                    <Check size={16} />
-                                 </button>
-                              )}
-                              {p.estado !== 'rechazado' && (
-                                 <button onClick={() => handleClickRechazar(p.id, p.email)} className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 p-2 rounded-lg transition-colors border border-orange-500/20" title="Rechazar y Revocar Acceso">
-                                    <X size={16} />
-                                 </button>
-                              )}
-                              <button onClick={() => handleClickEliminarPerfil(p.id, p.email)} className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors border border-red-500/20" title="Eliminar registro del historial">
-                                 <Trash2 size={16} />
-                              </button>
-                           </td>
-                        </tr>
-                     ))}
+                    {perfiles.map(p => (
+                      <tr key={p.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                        <td className="py-3 px-4 font-medium text-white">{p.email}</td>
+                        <td className="py-3 px-4">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${p.estado === 'aprobado' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : p.estado === 'rechazado' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'}`}>
+                            {p.estado}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-white/60">
+                          {new Date(p.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 px-4 text-right flex justify-end gap-2">
+                          {p.estado !== 'aprobado' && (
+                            <button onClick={() => handleClickAprobar(p.id, p.email)} className="bg-green-500/10 hover:bg-green-500/20 text-green-400 p-2 rounded-lg transition-colors border border-green-500/20" title="Aprobar Acceso">
+                              <Check size={16} />
+                            </button>
+                          )}
+                          {p.estado !== 'rechazado' && (
+                            <button onClick={() => handleClickRechazar(p.id, p.email)} className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 p-2 rounded-lg transition-colors border border-orange-500/20" title="Rechazar y Revocar Acceso">
+                              <X size={16} />
+                            </button>
+                          )}
+                          <button onClick={() => handleClickEliminarPerfil(p.id, p.email)} className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors border border-red-500/20" title="Eliminar registro del historial">
+                            <Trash2 size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -704,55 +708,57 @@ const Admin = () => {
 
       {/* Modal Licor */}
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
-          <div className="max-w-2xl w-full bg-negro-premium border border-dorado/20 rounded-3xl p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 bg-black/90 backdrop-blur-sm overflow-y-auto">
+          <div className="max-w-2xl w-full bg-negro-premium border border-dorado/20 rounded-3xl p-5 md:p-8 shadow-2xl mb-6">
+            <div className="flex justify-between items-center mb-5">
               <h2 className="text-xl font-bold gradiente-dorado">{licorEnEdicion ? 'Editar Licor' : 'Nuevo Licor'}</h2>
-              <button onClick={() => setModalAbierto(false)}><X className="text-white/40 hover:text-white" /></button>
+              <button onClick={() => setModalAbierto(false)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+                <X className="text-white/60 hover:text-white" />
+              </button>
             </div>
             <form onSubmit={handleSubmit(guardarLicor)} className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div className="col-span-2 space-y-1">
+              <div className="col-span-1 sm:col-span-2 space-y-1">
                 <label className="text-white/40">Nombre del Licor</label>
-                <input {...register('nombre_licor')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input {...register('nombre_licor')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40">Precio Compra</label>
-                <input type="number" {...register('precio_compra', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input type="number" {...register('precio_compra', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40">Precio Venta</label>
-                <input type="number" {...register('precio_venta', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input type="number" {...register('precio_venta', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40">Fecha Compra</label>
-                <input type="date" {...register('fecha_compra')} max={fechaHoy} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input type="date" {...register('fecha_compra')} max={fechaHoy} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40">Stock</label>
-                <input type="number" {...register('stock', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input type="number" {...register('stock', { valueAsNumber: true })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
-              <div className="col-span-2 space-y-1">
+              <div className="col-span-1 sm:col-span-2 space-y-1">
                 <label className="text-white/40">Categoría</label>
-                <select {...register('categoria')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none appearance-none">
+                <select {...register('categoria')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none appearance-none">
                   <option value="" disabled className="bg-negro-premium">Selecciona una categoría</option>
                   {categoriasDB.map(cat => (
                     <option key={cat.id} value={cat.nombre} className="bg-negro-premium">{cat.nombre}</option>
                   ))}
                 </select>
               </div>
-              <div className="col-span-2 space-y-1">
+              <div className="col-span-1 sm:col-span-2 space-y-1">
                 <label className="text-white/40">Descripción breve</label>
-                <textarea {...register('descripcion')} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" />
+                <textarea {...register('descripcion')} rows={2} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none resize-none" />
               </div>
-              <div className="col-span-2 space-y-1">
+              <div className="col-span-1 sm:col-span-2 space-y-1">
                 <label className="text-white/40">Historia Completa</label>
-                <textarea {...register('historia')} rows={4} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" />
+                <textarea {...register('historia')} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none resize-none" />
               </div>
-              <div className="col-span-2 space-y-2">
+              <div className="col-span-1 sm:col-span-2 space-y-2">
                 <label className="text-white/40">Imagen</label>
                 <div className="flex gap-4 items-center">
                   {(licorEnEdicion?.imagen_url || archivoImagen) && (
-                    <img src={archivoImagen ? URL.createObjectURL(archivoImagen) : licorEnEdicion?.imagen_url} className="w-16 h-16 rounded-xl object-cover border border-white/10" />
+                    <img src={archivoImagen ? URL.createObjectURL(archivoImagen) : licorEnEdicion?.imagen_url} className="w-16 h-16 rounded-xl object-cover border border-white/10 shrink-0" />
                   )}
                   <label className="flex-grow border-2 border-dashed border-white/10 hover:border-dorado/50 p-4 rounded-xl flex flex-col items-center cursor-pointer transition-all">
                     <ImageIcon size={20} className="text-white/40" />
@@ -761,7 +767,7 @@ const Admin = () => {
                   </label>
                 </div>
               </div>
-              <button disabled={isSubmitting} className="col-span-2 bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-3 rounded-xl mt-4 flex items-center justify-center gap-2">
+              <button disabled={isSubmitting} className="col-span-1 sm:col-span-2 bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-4 rounded-xl mt-2 flex items-center justify-center gap-2 text-base">
                 <Save size={18} /> {isSubmitting ? 'Guardando...' : 'Confirmar Cambios'}
               </button>
             </form>
@@ -771,42 +777,42 @@ const Admin = () => {
 
       {/* Modal Nueva Venta */}
       {modalVentaAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
-          <div className="max-w-md w-full bg-negro-premium border border-dorado/20 rounded-3xl p-8 shadow-2xl relative">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold gradiente-dorado text-center w-full">{ventaEnEdicion ? 'Editar Registro de Venta' : 'Registrar Nueva Venta'}</h2>
-              <button onClick={() => setModalVentaAbierto(false)} className="absolute right-6 top-6 text-white/40 hover:text-white transition-colors">
-                <X size={24} />
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-6 bg-black/90 backdrop-blur-sm overflow-y-auto">
+          <div className="max-w-md w-full bg-negro-premium border border-dorado/20 rounded-3xl p-5 md:p-8 shadow-2xl mb-6 relative">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-xl font-bold gradiente-dorado">{ventaEnEdicion ? 'Editar Venta' : 'Registrar Venta'}</h2>
+              <button onClick={() => setModalVentaAbierto(false)} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+                <X size={22} className="text-white/60" />
               </button>
             </div>
             <form onSubmit={handleGuardarVenta} className="space-y-4 text-sm">
               <div className="space-y-1">
                 <label className="text-white/40 flex items-center gap-2"><User size={14} /> Nombre del Cliente</label>
-                <input required value={formVenta.cliente_nombre} onChange={e => setFormVenta({ ...formVenta, cliente_nombre: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input required value={formVenta.cliente_nombre} onChange={e => setFormVenta({ ...formVenta, cliente_nombre: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40 flex items-center gap-2"><Phone size={14} /> Teléfono</label>
-                <input value={formVenta.cliente_telefono} onChange={e => setFormVenta({ ...formVenta, cliente_telefono: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input value={formVenta.cliente_telefono} onChange={e => setFormVenta({ ...formVenta, cliente_telefono: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40 flex items-center gap-2"><Package size={14} /> Producto</label>
                 <select required value={formVenta.id_licor} onChange={e => {
                   const licor = licores.find(l => l.id === e.target.value)
                   setFormVenta({ ...formVenta, id_licor: e.target.value, precio_venta: licor?.precio_venta || 0 })
-                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none appearance-none">
+                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none appearance-none">
                   <option value="" disabled className="bg-negro-premium">Selecciona un licor</option>
                   {licores.map(l => <option key={l.id} value={l.id} className="bg-negro-premium">{l.nombre_licor} (${l.precio_venta.toLocaleString()})</option>)}
                 </select>
               </div>
               <div className="space-y-1">
                 <label className="text-white/40 flex items-center gap-2"><DollarSign size={14} /> Precio Real</label>
-                <input type="number" required value={formVenta.precio_venta} onChange={e => setFormVenta({ ...formVenta, precio_venta: Number(e.target.value) })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input type="number" required value={formVenta.precio_venta} onChange={e => setFormVenta({ ...formVenta, precio_venta: Number(e.target.value) })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
               <div className="space-y-1">
                 <label className="text-white/40 flex items-center gap-2"><Calendar size={14} /> Fecha</label>
-                <input type="date" required max={fechaHoy} value={formVenta.fecha_venta} onChange={e => setFormVenta({ ...formVenta, fecha_venta: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+                <input type="date" required max={fechaHoy} value={formVenta.fecha_venta} onChange={e => setFormVenta({ ...formVenta, fecha_venta: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
               </div>
-              <button className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-3 rounded-xl mt-6">
+              <button className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-4 rounded-xl mt-4 text-base">
                 {ventaEnEdicion ? 'Actualizar Venta' : 'Registrar Venta'}
               </button>
             </form>

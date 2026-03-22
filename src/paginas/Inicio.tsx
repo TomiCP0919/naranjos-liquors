@@ -67,9 +67,9 @@ const Inicio = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative z-20 text-center px-4"
+          className="relative z-20 text-center px-4 mt-16 md:mt-0"
         >
-          <h1 className="text-6xl md:text-8xl font-black mb-4 gradiente-dorado uppercase">
+          <h1 className="text-5xl md:text-8xl font-black mb-4 gradiente-dorado uppercase">
             {contenido?.titulo_principal || "NARANJO'S"}
           </h1>
           <p className="text-xl md:text-2xl text-white/70 font-light tracking-[0.3em] uppercase mb-4">
@@ -207,8 +207,8 @@ const Inicio = () => {
                 <X size={24} />
               </button>
 
-              <div className="flex flex-col md:flex-row h-full max-h-[90vh]">
-                <div className="w-full md:w-1/2 h-64 md:h-auto">
+              <div className="flex flex-col md:flex-row h-full max-h-[85vh]">
+                <div className="w-full md:w-1/2 h-48 sm:h-64 md:h-auto shrink-0">
                   <img
                     src={licorHistoria.imagen_url}
                     alt={licorHistoria.nombre_licor}
@@ -216,7 +216,7 @@ const Inicio = () => {
                   />
                 </div>
 
-                <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center overflow-y-auto">
+                <div className="w-full md:w-1/2 p-6 sm:p-8 md:p-12 flex flex-col justify-center overflow-y-auto">
                   <p className="text-dorado text-sm uppercase tracking-widest mb-2 font-bold">{licorHistoria.categoria}</p>
                   <h2 className="text-3xl md:text-4xl font-black mb-6 gradiente-dorado uppercase leading-tight">
                     {licorHistoria.nombre_licor}
