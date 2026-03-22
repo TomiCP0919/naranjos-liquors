@@ -239,7 +239,7 @@ const Admin = () => {
         cliente_nombre: '',
         cliente_telefono: '',
         id_licor: '',
-        precio_venta:0,
+        precio_venta: 0,
         fecha_venta: fechaHoy
       })
       Swal.fire('¡Éxito!', ventaEnEdicion ? 'Venta actualizada' : 'Venta registrada', 'success')
@@ -299,7 +299,7 @@ const Admin = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-negro-premium text-white p-4 md:p-8"
+      className="min-h-screen bg-negro-premium text-white p-3 md:p-8"
     >
       <header className="flex flex-col gap-4 mb-8 vidrio p-4 rounded-2xl border border-white/10">
         {/* Fila superior: Logo + Cerrar Sesión */}
@@ -393,32 +393,32 @@ const Admin = () => {
       {pestaña === 'licores' ? (
         <div className="space-y-6">
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-end">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
               <div className="space-y-1">
                 <label className="text-[10px] uppercase text-white/40 ml-1">Buscar nombre</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
-                  <input value={filtroNombre} onChange={(e) => setFiltroNombre(e.target.value)} placeholder="Ej: Ron..." className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-dorado focus:outline-none" />
+                  <input value={filtroNombre} onChange={(e) => setFiltroNombre(e.target.value)} placeholder="Ej: Ron..." className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-dorado focus:outline-none" />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] uppercase text-white/40 ml-1">Fecha Compra</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
-                  <input type="date" value={filtroFecha} max={fechaHoy} onChange={(e) => setFiltroFecha(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-dorado focus:outline-none" />
+                  <input type="date" value={filtroFecha} max={fechaHoy} onChange={(e) => setFiltroFecha(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-dorado focus:outline-none" />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] uppercase text-white/40 ml-1">Categoría</label>
                 <div className="relative">
                   <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
-                  <select value={filtroCat} onChange={(e) => setFiltroCat(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:border-dorado focus:outline-none appearance-none">
+                  <select value={filtroCat} onChange={(e) => setFiltroCat(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-dorado focus:outline-none appearance-none">
                     {opcionesCategorias.map(cat => <option key={cat} value={cat} className="bg-negro-premium">{cat}</option>)}
                   </select>
                 </div>
               </div>
             </div>
-            <button onClick={() => abrirModal()} className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-2 rounded-xl font-bold flex items-center gap-2 whitespace-nowrap">
+            <button onClick={() => abrirModal()} className="w-full lg:w-auto bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 whitespace-nowrap">
               <Plus size={20} /> Nuevo Licor
             </button>
           </div>
@@ -488,56 +488,56 @@ const Admin = () => {
           </div>
         </div>
       ) : pestaña === 'categorias' ? (
-        <div className="max-w-2xl mx-auto space-y-8">
-          <div className="vidrio p-8 rounded-3xl border border-white/10">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="vidrio p-4 md:p-8 rounded-3xl border border-white/10">
+            <h2 className="text-xl font-bold mb-5 flex items-center gap-2">
               <Plus className="text-dorado" /> Agregar Nueva Categoría
             </h2>
-            <form onSubmit={handleAgregarCategoria} className="flex gap-4">
+            <form onSubmit={handleAgregarCategoria} className="flex flex-col sm:flex-row gap-3">
               <input
                 value={nuevaCatNombre}
                 onChange={(e) => setNuevaCatNombre(e.target.value)}
                 placeholder="Nombre de la categoría"
-                className="flex-grow bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none"
+                className="flex-grow bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
               />
-              <button className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-2 rounded-xl font-bold transition-all">
+              <button className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-3 rounded-xl font-bold transition-all shrink-0 w-full sm:w-auto">
                 Agregar
               </button>
             </form>
           </div>
-          <div className="vidrio p-8 rounded-3xl border border-white/10">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+          <div className="vidrio p-4 md:p-8 rounded-3xl border border-white/10">
+            <h2 className="text-xl font-bold mb-5 flex items-center gap-2">
               <Tag className="text-dorado" /> Categorías Existentes
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {categoriasDB.map(cat => (
                 <div key={cat.id} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 group hover:border-dorado/30 transition-all">
                   <span className="font-medium">{cat.nombre}</span>
-                  <button onClick={() => handleEliminarCategoria(cat.id, cat.nombre)} className="text-white/20 hover:text-red-400 p-2"><Trash2 size={16} /></button>
+                  <button onClick={() => handleEliminarCategoria(cat.id, cat.nombre)} className="text-white/20 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition-all"><Trash2 size={16} /></button>
                 </div>
               ))}
             </div>
           </div>
         </div>
       ) : pestaña === 'contenido' ? (
-        <div className="max-w-2xl mx-auto vidrio p-8 rounded-3xl border border-white/10">
-          <h2 className="text-xl font-bold mb-8 flex items-center gap-2">
+        <div className="max-w-2xl mx-auto vidrio p-4 md:p-8 rounded-3xl border border-white/10">
+          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
             <Layout className="text-dorado" /> Ajustes de la Landing Page
           </h2>
-          <form onSubmit={handleContenido(guardarAjustesLanding)} className="space-y-6">
+          <form onSubmit={handleContenido(guardarAjustesLanding)} className="space-y-5">
             <div className="space-y-2">
               <label className="text-sm text-white/40">Título Principal</label>
-              <input {...regContenido('titulo_principal')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none" />
+              <input {...regContenido('titulo_principal')} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
             </div>
             <div className="space-y-2">
               <label className="text-sm text-white/40">Descripción de Marca</label>
-              <textarea {...regContenido('descripcion_marca')} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" />
+              <textarea {...regContenido('descripcion_marca')} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none resize-none" />
             </div>
             <div className="space-y-2">
               <label className="text-sm text-white/40">Mensaje de Bienvenida</label>
-              <textarea {...regContenido('mensaje_bienvenida')} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none resize-none" />
+              <textarea {...regContenido('mensaje_bienvenida')} rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none resize-none" />
             </div>
-            <button disabled={subiendoContenido} className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all">
+            <button disabled={subiendoContenido} className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all text-base">
               <Save size={20} /> {subiendoContenido ? 'Guardando...' : 'Guardar Ajustes'}
             </button>
           </form>
@@ -545,20 +545,20 @@ const Admin = () => {
       ) : pestaña === 'ventas' ? (/*parte de historico de ventas*/
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <History className="text-dorado" /> Histórico de Ventas
               </h2>
-              <div className="bg-green-500/10 border border-green-500/20 px-4 py-1.5 rounded-xl flex items-center gap-2">
+              <div className="bg-green-500/10 border border-green-500/20 px-4 py-1.5 rounded-xl flex items-center gap-2 self-start md:self-auto">
                 <span className="text-white/60 text-sm">Ganancia Total:</span>
                 <span className="text-green-400 font-bold">${gananciaTotal.toLocaleString()}</span>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button onClick={exportarAExcel} className="bg-white/5 hover:bg-white/10 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all border border-white/10">
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+              <button onClick={exportarAExcel} className="flex-1 md:flex-none bg-white/5 hover:bg-white/10 text-white px-6 py-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-all border border-white/10">
                 <FileDown size={20} /> Exportar Excel
               </button>
-              <button onClick={() => abrirModalVenta()} className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-all">
+              <button onClick={() => abrirModalVenta()} className="flex-1 md:flex-none bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-2 rounded-xl font-bold flex items-center justify-center gap-2 transition-all">
                 <Plus size={20} /> Registrar Venta
               </button>
             </div>
