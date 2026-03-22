@@ -128,7 +128,7 @@ const Inicio = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
             <AnimatePresence mode="popLayout">
               {licoresFiltrados.map((licor) => (
                 <motion.div
@@ -139,26 +139,25 @@ const Inicio = () => {
                   exit={{ opacity: 0, scale: 0.9 }}
                   whileHover={{ y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className="group vidrio rounded-2xl overflow-hidden border-white/10 hover:border-dorado/50 hover:shadow-[0_20px_40px_rgba(197,160,89,0.15)] transition-all duration-500 flex flex-col"
+                  className="group vidrio rounded-2xl overflow-hidden border border-white/10 hover:border-dorado/50 hover:shadow-[0_20px_40px_rgba(197,160,89,0.15)] transition-all duration-500 flex flex-col cursor-pointer"
+                  onClick={() => setLicorHistoria(licor)}
                 >
-                  <div className="p-6 flex-grow flex flex-col">
-                    <div className="overflow-hidden rounded-lg mb-4 h-48">
+                  <div className="p-5 flex-grow flex flex-col">
+                    <div className="overflow-hidden rounded-xl mb-4 aspect-[3/4] sm:aspect-auto sm:h-52 lg:h-48">
                       <img 
                         src={licor.imagen_url} 
                         alt={licor.nombre_licor} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                       />
                     </div>
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-dorado transition-colors duration-300">{licor.nombre_licor}</h3>
-                    <p className="text-white/60 text-sm line-clamp-3 mb-4 italic">"{licor.descripcion}"</p>
-                    <div className="mt-auto flex justify-between items-end">
+                    <p className="text-dorado/70 text-[10px] uppercase tracking-widest font-bold mb-1">{licor.categoria}</p>
+                    <h3 className="text-lg font-bold mb-2 group-hover:text-dorado transition-colors duration-300 line-clamp-2">{licor.nombre_licor}</h3>
+                    <p className="text-white/50 text-sm line-clamp-2 mb-4 italic">"{licor.descripcion}"</p>
+                    <div className="mt-auto flex justify-between items-center">
                       <span className="text-2xl font-black text-dorado">${licor.precio_venta.toLocaleString()}</span>
-                      <button
-                        onClick={() => setLicorHistoria(licor)}
-                        className="text-xs uppercase tracking-tighter text-dorado border-b border-dorado opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0"
-                      >
+                      <span className="text-xs uppercase tracking-tighter text-dorado border-b border-dorado/60 pb-0.5 md:opacity-0 md:group-hover:opacity-100 md:translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
                         Ver Historia
-                      </button>
+                      </span>
                     </div>
                   </div>
                 </motion.div>
@@ -193,22 +192,26 @@ const Inicio = () => {
       {/* Modal Historia */}
       <AnimatePresence>
         {licorHistoria && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div
+            className="fixed inset-0 z-[100] flex items-start justify-center p-4 pt-8 bg-black/90 backdrop-blur-md overflow-y-auto"
+            onClick={(e) => { if (e.target === e.currentTarget) setLicorHistoria(null) }}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="max-w-4xl w-full bg-negro-premium border border-dorado/20 rounded-3xl overflow-hidden shadow-2xl relative"
+              className="max-w-4xl w-full bg-negro-premium border border-dorado/20 rounded-3xl overflow-hidden shadow-2xl relative mb-8"
             >
               <button
                 onClick={() => setLicorHistoria(null)}
-                className="absolute top-6 right-6 text-white/40 hover:text-white z-10 p-2 hover:bg-white/5 rounded-full transition-all"
+                className="absolute top-4 right-4 text-white/60 hover:text-white z-10 p-2 bg-black/40 hover:bg-white/10 rounded-full transition-all"
               >
-                <X size={24} />
+                <X size={22} />
               </button>
 
-              <div className="flex flex-col md:flex-row h-full max-h-[85vh]">
-                <div className="w-full md:w-1/2 h-48 sm:h-64 md:h-auto shrink-0">
+              <div className="flex flex-col md:flex-row">
+                {/* Imagen */}
+                <div className="w-full md:w-2/5 aspect-[3/4] md:aspect-auto md:h-auto shrink-0">
                   <img
                     src={licorHistoria.imagen_url}
                     alt={licorHistoria.nombre_licor}
@@ -216,25 +219,24 @@ const Inicio = () => {
                   />
                 </div>
 
-                <div className="w-full md:w-1/2 p-6 sm:p-8 md:p-12 flex flex-col justify-center overflow-y-auto">
-                  <p className="text-dorado text-sm uppercase tracking-widest mb-2 font-bold">{licorHistoria.categoria}</p>
-                  <h2 className="text-3xl md:text-4xl font-black mb-6 gradiente-dorado uppercase leading-tight">
+                {/* Contenido */}
+                <div className="flex-1 p-6 md:p-10 flex flex-col justify-center">
+                  <p className="text-dorado text-xs uppercase tracking-widest mb-2 font-bold">{licorHistoria.categoria}</p>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-5 gradiente-dorado uppercase leading-tight">
                     {licorHistoria.nombre_licor}
                   </h2>
 
-                  <div className="relative">
-                    <span className="text-6xl text-dorado/20 absolute -top-8 -left-4 font-serif">"</span>
-                    <p className="text-lg md:text-xl text-white/80 leading-relaxed italic relative z-10">
-                      {licorHistoria.historia || "Este licor guarda secretos que solo el tiempo sabe revelar. Una joya de nuestra colección privada lista para ser descubierta."}
+                  <div className="mb-6">
+                    <p className="text-base md:text-lg text-white/75 leading-relaxed italic">
+                      "{licorHistoria.historia || 'Este licor guarda secretos que solo el tiempo sabe revelar. Una joya de nuestra colección privada lista para ser descubierta.'}"
                     </p>
-                    <span className="text-6xl text-dorado/20 absolute -bottom-12 -right-4 font-serif">"</span>
                   </div>
 
-                  <div className="mt-12 flex items-center gap-4">
+                  <div className="flex items-center gap-4">
                     <div className="h-px flex-grow bg-white/10" />
                     <button
                       onClick={() => setLicorHistoria(null)}
-                      className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-8 py-3 rounded-full font-bold transition-all transform hover:scale-105"
+                      className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-6 py-3 rounded-full font-bold transition-all transform hover:scale-105"
                     >
                       Volver al Catálogo
                     </button>
