@@ -41,10 +41,14 @@ const Admin = () => {
 
   const fechaHoy = new Date().toISOString().split('T')[0]
 
-  // Filtros
+  // Filtros Licores
   const [filtroNombre, setFiltroNombre] = useState('')
   const [filtroFecha, setFiltroFecha] = useState('')
   const [filtroCat, setFiltroCat] = useState('Todas')
+  
+  // Filtros Ventas
+  const [filtroVentaNombre, setFiltroVentaNombre] = useState('')
+  const [filtroVentaFecha, setFiltroVentaFecha] = useState('')
 
   const { register, handleSubmit, reset, setValue, formState: { isSubmitting } } = useForm<DatosLicor>({
     resolver: zodResolver(esquemaLicor)
@@ -186,10 +190,16 @@ const Admin = () => {
     }
   }
 
-  const gananciaTotal = ventas.reduce((acc, v) => acc + (v.precio_venta - (v.Info_Licores?.precio_compra || 0)), 0)
+  const ventasFiltradas = ventas.filter(v => {
+    const coincideNombre = v.cliente_nombre.toLowerCase().includes(filtroVentaNombre.toLowerCase())
+    const coincideFecha = !filtroVentaFecha || v.fecha_venta === filtroVentaFecha
+    return coincideNombre && coincideFecha
+  })
+
+  const gananciaTotal = ventasFiltradas.reduce((acc, v) => acc + (v.precio_venta - (v.Info_Licores?.precio_compra || 0)), 0)
 
   const exportarAExcel = () => {
-    const datosExportar: any[] = ventas.map(v => {
+    const datosExportar: any[] = ventasFiltradas.map(v => {
       const precioCompra = v.Info_Licores?.precio_compra || 0;
       const ganancia = v.precio_venta - precioCompra;
       return {
@@ -413,7 +423,7 @@ const Admin = () => {
                       const val = e.target.value
                       if (!val || val <= fechaHoy) setFiltroFecha(val)
                     }}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm focus:border-dorado focus:outline-none"
+                    className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm focus:border-dorado focus:outline-none"
                   />
                   {filtroFecha && (
                     <button
@@ -584,6 +594,47 @@ const Admin = () => {
             </div>
           </div>
 
+          {/* Filtros Ventas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase text-white/40 ml-1">Buscar Cliente</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                <input
+                  value={filtroVentaNombre}
+                  onChange={(e) => setFiltroVentaNombre(e.target.value)}
+                  placeholder="Ej: Juan Pérez..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-dorado focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase text-white/40 ml-1">Filtrar por Fecha</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                <input
+                  type="date"
+                  value={filtroVentaFecha}
+                  max={fechaHoy}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (!val || val <= fechaHoy) setFiltroVentaFecha(val)
+                  }}
+                  className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm focus:border-dorado focus:outline-none"
+                />
+                {filtroVentaFecha && (
+                  <button
+                    type="button"
+                    onClick={() => setFiltroVentaFecha('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/80 transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="vidrio rounded-2xl overflow-x-auto border border-white/10">
             <table className="w-full text-left text-sm min-w-[1000px]">
               <thead className="bg-white/5 text-dorado uppercase text-[10px] tracking-widest">
@@ -613,7 +664,7 @@ const Admin = () => {
                     </tr>
                   ))
                 ) : (
-                  ventas.map((venta, index) => {
+                  ventasFiltradas.map((venta, index) => {
                     const precioCompra = venta.Info_Licores?.precio_compra || 0;
                     const ganancia = venta.precio_venta - precioCompra;
 
@@ -763,7 +814,7 @@ const Admin = () => {
                       e.target.value = fechaHoy
                     }
                   }}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
+                  className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
                 />
               </div>
               <div className="space-y-1">
@@ -852,7 +903,7 @@ const Admin = () => {
                     const val = e.target.value
                     if (!val || val <= fechaHoy) setFormVenta({ ...formVenta, fecha_venta: val })
                   }}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
+                  className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
                 />
               </div>
               <button className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-4 rounded-xl mt-4 text-base">
