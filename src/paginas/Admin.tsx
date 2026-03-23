@@ -10,7 +10,7 @@ import { useCategorias } from '../hooks/useCategorias'
 import { supabase } from '../servicios/supabase'
 import { subirImagenLicor } from '../servicios/almacenamiento'
 import { useAutenticacion } from '../contextos/AutenticacionContexto'
-import { Plus, Edit, Trash2, LogOut, Package, Image as ImageIcon, Save, X, Layout, Search, Filter, Calendar, Tag, FileDown, User, Phone, DollarSign, History, AlertTriangle, Users, Check } from 'lucide-react'
+import { Plus, Edit, Trash2, LogOut, Package, Image as ImageIcon, Save, X, Layout, Search, Filter, Calendar, Tag, FileDown, User, Phone, History, AlertTriangle, Users, Check } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { esquemaLicor, esquemaContenido, type DatosLicor, type DatosContenido } from '../utilidades/validaciones'
@@ -34,9 +34,8 @@ const Admin = () => {
   const [formVenta, setFormVenta] = useState({
     cliente_nombre: '',
     cliente_telefono: '',
-    id_licor: '',
-    precio_venta: 0,
-    fecha_venta: new Date().toISOString().split('T')[0]
+    fecha_venta: new Date().toISOString().split('T')[0],
+    items: [] as { id_licor: string, cantidad: number, precio_unitario: number }[]
   })
 
   const fechaHoy = new Date().toISOString().split('T')[0]
@@ -45,7 +44,7 @@ const Admin = () => {
   const [filtroNombre, setFiltroNombre] = useState('')
   const [filtroFecha, setFiltroFecha] = useState('')
   const [filtroCat, setFiltroCat] = useState('Todas')
-  
+
   // Filtros Ventas
   const [filtroVentaNombre, setFiltroVentaNombre] = useState('')
   const [filtroVentaFecha, setFiltroVentaFecha] = useState('')
@@ -83,18 +82,20 @@ const Admin = () => {
       setFormVenta({
         cliente_nombre: venta.cliente_nombre,
         cliente_telefono: venta.cliente_telefono || '',
-        id_licor: venta.id_licor,
-        precio_venta: venta.precio_venta,
-        fecha_venta: venta.fecha_venta
+        fecha_venta: venta.fecha_venta,
+        items: venta.items?.map(item => ({
+          id_licor: item.id_licor,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario
+        })) || []
       })
     } else {
       setVentaEnEdicion(null)
       setFormVenta({
         cliente_nombre: '',
         cliente_telefono: '',
-        id_licor: '',
-        precio_venta: 0,
-        fecha_venta: fechaHoy
+        fecha_venta: fechaHoy,
+        items: [{ id_licor: '', cantidad: 1, precio_unitario: 0 }]
       })
     }
     setModalVentaAbierto(true)
@@ -200,20 +201,38 @@ const Admin = () => {
     return coincideNombre && coincideFecha
   })
 
-  const gananciaTotal = ventasFiltradas.reduce((acc, v) => acc + (v.precio_venta - (v.Info_Licores?.precio_compra || 0)), 0)
+  const gananciaTotal = ventasFiltradas.reduce((acc, v) => {
+    const gananciaVenta = v.items.reduce((sum, item) => {
+      const costo = item.Info_Licores?.precio_compra || 0
+      return sum + ((item.precio_unitario - costo) * item.cantidad)
+    }, 0)
+    return acc + gananciaVenta
+  }, 0)
 
   const exportarAExcel = async () => {
     const XLSX = await import('xlsx')
     const datosExportar: any[] = ventasFiltradas.map(v => {
-      const precioCompra = v.Info_Licores?.precio_compra || 0;
-      const ganancia = v.precio_venta - precioCompra;
+      const gananciaTotalVenta = v.items.reduce((acc, item) => {
+        const costo = item.Info_Licores?.precio_compra || 0
+        return acc + ((item.precio_unitario - costo) * item.cantidad)
+      }, 0)
+
+      const detalleLicores = v.items.map(item =>
+        `${item.cantidad}x ${item.Info_Licores?.nombre_licor || 'N/A'} ($${item.precio_unitario.toLocaleString()})`
+      ).join(' | ')
+
+      const costoTotalVenta = v.items.reduce((acc, item) => {
+        const costo = item.Info_Licores?.precio_compra || 0
+        return acc + (costo * item.cantidad)
+      }, 0)
+
       return {
         Cliente: v.cliente_nombre,
         Teléfono: v.cliente_telefono,
-        Producto: v.Info_Licores?.nombre_licor || 'N/A',
-        'Precio Compra': precioCompra,
-        'Precio Venta': v.precio_venta,
-        'Ganancia': ganancia,
+        'Detalle de Productos': detalleLicores,
+        'Costo Total (Compra)': costoTotalVenta,
+        'Total Venta (Ingreso)': v.total_venta,
+        'Ganancia Total': gananciaTotalVenta,
         Fecha: v.fecha_venta
       }
     })
@@ -237,15 +256,24 @@ const Admin = () => {
 
   const handleGuardarVenta = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formVenta.id_licor || !formVenta.cliente_nombre) {
-      return Swal.fire('Error', 'Completa los campos obligatorios', 'error')
+    if (!formVenta.cliente_nombre || formVenta.items.length === 0 || formVenta.items.some(i => !i.id_licor)) {
+      return Swal.fire('Error', 'Completa los campos obligatorios y añade al menos un producto', 'error')
     }
+
+    const total_venta = formVenta.items.reduce((acc, item) => acc + (item.precio_unitario * item.cantidad), 0)
 
     let res;
     if (ventaEnEdicion) {
-      res = await actualizarVenta(ventaEnEdicion.id, formVenta)
+      // Para simplificar, en edición actualizamos los datos básicos. 
+      // Nota: Si se requiere editar los items, se necesitaría una lógica de borrado/inserción más compleja.
+      res = await actualizarVenta(ventaEnEdicion.id, {
+        cliente_nombre: formVenta.cliente_nombre,
+        cliente_telefono: formVenta.cliente_telefono,
+        fecha_venta: formVenta.fecha_venta,
+        total_venta
+      })
     } else {
-      res = await agregarVenta(formVenta)
+      res = await agregarVenta({ ...formVenta, total_venta })
     }
 
     if (res.success) {
@@ -253,9 +281,8 @@ const Admin = () => {
       setFormVenta({
         cliente_nombre: '',
         cliente_telefono: '',
-        id_licor: '',
-        precio_venta: 0,
-        fecha_venta: fechaHoy
+        fecha_venta: fechaHoy,
+        items: [{ id_licor: '', cantidad: 1, precio_unitario: 0 }]
       })
       Swal.fire('¡Éxito!', ventaEnEdicion ? 'Venta actualizada' : 'Venta registrada', 'success')
     } else {
@@ -647,10 +674,13 @@ const Admin = () => {
                   <th className="px-6 py-4">Cliente</th>
                   <th className="px-6 py-4">Teléfono</th>
                   <th className="px-6 py-4">Licor</th>
-                  <th className="px-6 py-4 text-center">Precio Compra</th>
-                  <th className="px-6 py-4 text-center">Precio Venta (Real)</th>
-                  <th className="px-6 py-4 text-center">Ganancia</th>
-                  <th className="px-6 py-4 text-center">Fecha de venta</th>
+                  <th className="px-6 py-4 text-center">P. Compra (Total)</th>
+                  <th className="px-6 py-4 text-center">P. Venta Unidad (Real)</th>
+                  <th className="px-6 py-4 text-center">P. Venta Total (Real)</th>
+                  <th className="px-6 py-4 text-center">Total Venta</th>
+                  <th className="px-6 py-4 text-center">Ganancia por Ítem</th>
+                  <th className="px-6 py-4 text-center">Ganancia Total Venta</th>
+                  <th className="px-6 py-4 text-center">Fecha</th>
                   <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -670,8 +700,10 @@ const Admin = () => {
                   ))
                 ) : (
                   ventasFiltradas.map((venta, index) => {
-                    const precioCompra = venta.Info_Licores?.precio_compra || 0;
-                    const ganancia = venta.precio_venta - precioCompra;
+                    const gananciaTotalVenta = venta.items.reduce((acc, item) => {
+                      const costo = item.Info_Licores?.precio_compra || 0
+                      return acc + ((item.precio_unitario - costo) * item.cantidad)
+                    }, 0)
 
                     return (
                       <motion.tr
@@ -688,7 +720,7 @@ const Admin = () => {
                               href={`https://wa.me/${venta.cliente_telefono.replace(/\D/g, '')}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-green-400 hover:text-green-400 hover:underline transition-colors"
+                              className="text-blue-400 hover:text-blue-400 hover:underline transition-colors"
                               title="Abrir chat en WhatsApp"
                             >
                               {venta.cliente_telefono}
@@ -697,10 +729,64 @@ const Admin = () => {
                             <span className="text-white/60">N/A</span>
                           )}
                         </td>
-                        <td className="px-6 py-4">{venta.Info_Licores?.nombre_licor || 'Producto Eliminado'}</td>
-                        <td className="px-6 py-4 text-center font-bold text-dorado">${precioCompra.toLocaleString()}</td>
-                        <td className="px-6 py-4 text-center font-bold text-dorado">${venta.precio_venta.toLocaleString()}</td>
-                        <td className="px-6 py-4 text-center font-bold text-green-400">${ganancia.toLocaleString()}</td>
+                        <td className="px-6 py-4 font-bold" >
+                          <div className="flex flex-col gap-1">
+                            {venta.items.map((item, i) => (
+                              <span key={i} className="text-sm">
+                                {item.cantidad}x {item.Info_Licores?.nombre_licor || 'Licor Eliminado'}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex flex-col gap-1">
+                            {venta.items.map((item, i) => {
+                              const costoUnit = item.Info_Licores?.precio_compra || 0
+                              return (
+                                <span key={i} className="text-sm text-dorado font-bold">
+                                  ${(costoUnit * item.cantidad).toLocaleString()}
+                                </span>
+                              )
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex flex-col gap-1">
+                            {venta.items.map((item, i) => (
+                              <span key={i} className="text-sm text-dorado font-bold">
+                                ${item.precio_unitario.toLocaleString()}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex flex-col gap-1">
+                            {venta.items.map((item, i) => (
+                              <span key={i} className="text-sm text-dorado font-bold">
+                                ${(item.precio_unitario * item.cantidad).toLocaleString()}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center font-bold text-dorado">
+                          ${venta.total_venta.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="flex flex-col gap-1">
+                            {venta.items.map((item, i) => {
+                              const costoItem = item.Info_Licores?.precio_compra || 0
+                              const gananciaIt = (item.precio_unitario - costoItem) * item.cantidad
+                              return (
+                                <span key={i} className="text-sm text-green-400 font-bold">
+                                  ${gananciaIt.toLocaleString()}
+                                </span>
+                              )
+                            })}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center font-bold text-green-400">
+                          ${gananciaTotalVenta.toLocaleString()}
+                        </td>
                         <td className="px-6 py-4 text-center text-white/40">{venta.fecha_venta}</td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-1">
@@ -875,44 +961,122 @@ const Admin = () => {
               </button>
             </div>
             <form onSubmit={handleGuardarVenta} className="space-y-4 text-sm">
-              <div className="space-y-1">
-                <label className="text-white/40 flex items-center gap-2"><User size={14} /> Nombre del Cliente</label>
-                <input required value={formVenta.cliente_nombre} onChange={e => setFormVenta({ ...formVenta, cliente_nombre: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-white/40 flex items-center gap-2 text-xs"><User size={12} /> Cliente</label>
+                  <input required value={formVenta.cliente_nombre} onChange={e => setFormVenta({ ...formVenta, cliente_nombre: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-white/40 flex items-center gap-2 text-xs"><Phone size={12} /> Teléfono</label>
+                  <input value={formVenta.cliente_telefono} onChange={e => setFormVenta({ ...formVenta, cliente_telefono: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-white/40 flex items-center gap-2"><Phone size={14} /> Teléfono</label>
-                <input value={formVenta.cliente_telefono} onChange={e => setFormVenta({ ...formVenta, cliente_telefono: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-white/40 flex items-center gap-2 text-xs uppercase tracking-widest"><Package size={12} /> Productos</label>
+                  {!ventaEnEdicion && (
+                    <button
+                      type="button"
+                      onClick={() => setFormVenta({ ...formVenta, items: [...formVenta.items, { id_licor: '', cantidad: 1, precio_unitario: 0 }] })}
+                      className="text-dorado text-xs flex items-center gap-1 hover:underline"
+                    >
+                      <Plus size={12} /> Añadir otro
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-[300px] overflow-y-auto space-y-3 pr-1">
+                  {formVenta.items.map((item, index) => (
+                    <div key={index} className="vidrio p-3 rounded-xl border border-white/5 space-y-3 relative group">
+                      {!ventaEnEdicion && formVenta.items.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setFormVenta({ ...formVenta, items: formVenta.items.filter((_, i) => i !== index) })}
+                          className="absolute -right-2 -top-2 bg-red-500 text-white p-1 rounded-full"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+
+                      <div className="space-y-1">
+                        <select
+                          required
+                          value={item.id_licor}
+                          onChange={e => {
+                            const licor = licores.find(l => l.id === e.target.value)
+                            const newItems = [...formVenta.items]
+                            newItems[index] = { ...newItems[index], id_licor: e.target.value, precio_unitario: licor?.precio_venta || 0 }
+                            setFormVenta({ ...formVenta, items: newItems })
+                          }}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none appearance-none"
+                        >
+                          <option value="" disabled className="bg-negro-premium">Elegir licor...</option>
+                          {licores.map(l => <option key={l.id} value={l.id} className="bg-negro-premium">{l.nombre_licor} (${l.precio_venta.toLocaleString()})</option>)}
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-white/30 uppercase">Cantidad</label>
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            value={item.cantidad}
+                            onChange={e => {
+                              const newItems = [...formVenta.items]
+                              newItems[index].cantidad = Number(e.target.value)
+                              setFormVenta({ ...formVenta, items: newItems })
+                            }}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-white/30 uppercase">Precio Unit. (Real)</label>
+                          <input
+                            type="number"
+                            required
+                            value={item.precio_unitario}
+                            onChange={e => {
+                              const newItems = [...formVenta.items]
+                              newItems[index].precio_unitario = Number(e.target.value)
+                              setFormVenta({ ...formVenta, items: newItems })
+                            }}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 focus:border-dorado focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-white/40 flex items-center gap-2"><Package size={14} /> Producto</label>
-                <select required value={formVenta.id_licor} onChange={e => {
-                  const licor = licores.find(l => l.id === e.target.value)
-                  setFormVenta({ ...formVenta, id_licor: e.target.value, precio_venta: licor?.precio_venta || 0 })
-                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none appearance-none">
-                  <option value="" disabled className="bg-negro-premium">Selecciona un licor</option>
-                  {licores.map(l => <option key={l.id} value={l.id} className="bg-negro-premium">{l.nombre_licor} (${l.precio_venta.toLocaleString()})</option>)}
-                </select>
+
+              <div className="flex flex-col sm:flex-row gap-4 items-end justify-between border-t border-white/10 pt-4">
+                <div className="space-y-1 flex-1 w-full">
+                  <label className="text-white/40 flex items-center gap-2 text-xs"><Calendar size={12} /> Fecha</label>
+                  <input
+                    type="date"
+                    required
+                    max={fechaHoy}
+                    value={formVenta.fecha_venta}
+                    onChange={e => {
+                      const val = e.target.value
+                      if (!val || val <= fechaHoy) setFormVenta({ ...formVenta, fecha_venta: val })
+                    }}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
+                  />
+                </div>
+                <div className="text-right pb-2">
+                  <p className="text-[10px] text-white/40 uppercase tracking-widest">Total Venta</p>
+                  <p className="text-2xl font-bold text-dorado">
+                    ${formVenta.items.reduce((acc, item) => acc + (item.precio_unitario * item.cantidad), 0).toLocaleString()}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-white/40 flex items-center gap-2"><DollarSign size={14} /> Precio Real</label>
-                <input type="number" required value={formVenta.precio_venta} onChange={e => setFormVenta({ ...formVenta, precio_venta: Number(e.target.value) })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-white/40 flex items-center gap-2"><Calendar size={14} /> Fecha</label>
-                <input
-                  type="date"
-                  required
-                  max={fechaHoy}
-                  value={formVenta.fecha_venta}
-                  onChange={e => {
-                    const val = e.target.value
-                    if (!val || val <= fechaHoy) setFormVenta({ ...formVenta, fecha_venta: val })
-                  }}
-                  className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none"
-                />
-              </div>
-              <button className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-4 rounded-xl mt-4 text-base">
-                {ventaEnEdicion ? 'Actualizar Venta' : 'Registrar Venta'}
+
+              <button className="w-full bg-dorado hover:bg-dorado-brillante text-negro-premium font-bold py-4 rounded-xl mt-4 text-base shadow-lg shadow-dorado/10">
+                {ventaEnEdicion ? 'Guardar Cambios' : 'Registrar Venta Global'}
               </button>
             </form>
           </div>

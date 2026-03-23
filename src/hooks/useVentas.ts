@@ -1,19 +1,26 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../servicios/supabase'
 
-export interface Venta {
+export interface VentaItem {
   id: string
-  cliente_nombre: string
-  cliente_telefono: string
+  id_venta: string
   id_licor: string
-  precio_venta: number
-  fecha_venta: string
-  created_at: string
-  // Extendida con el nombre del licor (vía join)
+  cantidad: number
+  precio_unitario: number
   Info_Licores?: {
     nombre_licor: string
     precio_compra: number
   }
+}
+
+export interface Venta {
+  id: string
+  cliente_nombre: string
+  cliente_telefono: string
+  fecha_venta: string
+  total_venta: number
+  created_at: string
+  items: VentaItem[]
 }
 
 export const useVentas = () => {
@@ -28,15 +35,25 @@ export const useVentas = () => {
         .from('Ventas')
         .select(`
           *,
-          Info_Licores (
-            nombre_licor,
-            precio_compra
+          Venta_Items (
+            *,
+            Info_Licores (
+              nombre_licor,
+              precio_compra
+            )
           )
         `)
         .order('fecha_venta', { ascending: false })
 
       if (error) throw error
-      setVentas(data || [])
+
+      // Mapear items a la interfaz
+      const ventasMapeadas = (data || []).map((v: any) => ({
+        ...v,
+        items: v.Venta_Items || []
+      }))
+
+      setVentas(ventasMapeadas)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -44,13 +61,43 @@ export const useVentas = () => {
     }
   }
 
-  const agregarVenta = async (nuevaVenta: Omit<Venta, 'id' | 'created_at'>) => {
+  const agregarVenta = async (datosVenta: {
+    cliente_nombre: string
+    cliente_telefono: string
+    fecha_venta: string
+    total_venta: number
+    items: { id_licor: string, cantidad: number, precio_unitario: number }[]
+  }) => {
     try {
-      const { error } = await supabase
+      // 1. Crear la venta principal
+      // Incluimos precio_venta e id_licor del primer ítem para compatibilidad con restricciones NOT NULL antiguas
+      const { data: ventaCreada, error: errorVenta } = await supabase
         .from('Ventas')
-        .insert([nuevaVenta])
+        .insert([{
+          cliente_nombre: datosVenta.cliente_nombre,
+          cliente_telefono: datosVenta.cliente_telefono,
+          fecha_venta: datosVenta.fecha_venta,
+          total_venta: datosVenta.total_venta,
+          precio_venta: datosVenta.total_venta, // Valor total para la columna legacy
+          id_licor: datosVenta.items[0]?.id_licor || null
+        }])
+        .select()
+        .single()
 
-      if (error) throw error
+      if (errorVenta) throw errorVenta
+
+      // 2. Crear los ítems de la venta
+      const itemsConId = datosVenta.items.map(item => ({
+        ...item,
+        id_venta: ventaCreada.id
+      }))
+
+      const { error: errorItems } = await supabase
+        .from('Venta_Items')
+        .insert(itemsConId)
+
+      if (errorItems) throw errorItems
+      
       await obtenerVentas()
       return { success: true }
     } catch (err: any) {
