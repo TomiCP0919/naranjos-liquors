@@ -413,7 +413,7 @@ const Admin = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] uppercase text-white/40 ml-1">Fecha Compra</label>
-                <div className="relative">
+                <div className="relative w-full overflow-hidden">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
                   <input
                     type="date"
@@ -423,7 +423,7 @@ const Admin = () => {
                       const val = e.target.value
                       if (!val || val <= fechaHoy) setFiltroFecha(val)
                     }}
-                    className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm focus:border-dorado focus:outline-none"
+                    className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl pl-9 pr-9 py-3 text-sm focus:border-dorado focus:outline-none"
                   />
                   {filtroFecha && (
                     <button
@@ -610,7 +610,7 @@ const Admin = () => {
             </div>
             <div className="space-y-1">
               <label className="text-[10px] uppercase text-white/40 ml-1">Filtrar por Fecha</label>
-              <div className="relative">
+              <div className="relative w-full overflow-hidden">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" size={16} />
                 <input
                   type="date"
@@ -620,7 +620,7 @@ const Admin = () => {
                     const val = e.target.value
                     if (!val || val <= fechaHoy) setFiltroVentaFecha(val)
                   }}
-                  className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-sm focus:border-dorado focus:outline-none"
+                  className="w-full min-w-0 bg-white/5 border border-white/10 rounded-xl pl-9 pr-9 py-3 text-sm focus:border-dorado focus:outline-none"
                 />
                 {filtroVentaFecha && (
                   <button
