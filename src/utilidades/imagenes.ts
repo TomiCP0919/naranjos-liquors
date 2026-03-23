@@ -4,9 +4,9 @@
 
 // Configuración de calidad
 const CALIDAD_ALTA = 0.9;
-const CALIDAD_MINI = 0.7;
+const CALIDAD_MINI = 0.6; // AVIF es tan eficiente que podemos bajar un poco más sin perder calidad visible
 
-export const optimizarImagen = async (archivo: File, maxDim: number = 1200, calidad: number = CALIDAD_ALTA): Promise<Blob> => {
+export const optimizarImagen = async (archivo: File, maxDim: number = 1200, calidad: number = CALIDAD_ALTA, formato: 'image/webp' | 'image/avif' = 'image/webp'): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(archivo);
@@ -36,13 +36,13 @@ export const optimizarImagen = async (archivo: File, maxDim: number = 1200, cali
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
 
-        // Convertir a WebP
+        // Convertir al formato solicitado
         canvas.toBlob(
           (blob) => {
             if (blob) resolve(blob);
-            else reject(new Error('Error al convertir imagen a Blob'));
+            else reject(new Error(`Error al convertir imagen a ${formato}`));
           },
-          'image/webp',
+          formato,
           calidad
         );
       };
@@ -53,6 +53,7 @@ export const optimizarImagen = async (archivo: File, maxDim: number = 1200, cali
 };
 
 /**
- * Genera una miniatura rápida para el catálogo.
+ * Genera una miniatura ultra-optimizada en formato AVIF para el catálogo.
+ * AVIF es un 30% más eficiente que WebP manteniendo la misma calidad.
  */
-export const generarMiniatura = (archivo: File) => optimizarImagen(archivo, 500, CALIDAD_MINI);
+export const generarMiniatura = (archivo: File) => optimizarImagen(archivo, 500, CALIDAD_MINI, 'image/avif');

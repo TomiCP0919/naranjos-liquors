@@ -4,7 +4,7 @@ import { generarMiniatura } from '../utilidades/imagenes'
 /**
  * Sube una imagen en dos versiones:
  * 1. Original: El archivo tal cual, sin comprimir ni redimensionar.
- * 2. Miniatura: Una versión optimizada en WebP para la vitrina/catálogo.
+ * 2. Miniatura: Una versión optimizada en AVIF para la vitrina/catálogo.
  */
 export const subirImagenLicor = async (archivo: File) => {
   const nombreBase = archivo.name.split('.').slice(0, -1).join('.')
@@ -21,11 +21,11 @@ export const subirImagenLicor = async (archivo: File) => {
 
   // 2. Subir MINIATURA OPTIMIZADA (Para rapidez en la lista)
   const blobMini = await generarMiniatura(archivo)
-  const nombreMini = `${timestamp}-${nombreBase}-thumb.webp`
+  const nombreMini = `${timestamp}-${nombreBase}-thumb.avif`
   const { data: dataMini, error: errMini } = await supabase.storage
     .from('licores')
     .upload(nombreMini, blobMini, {
-      contentType: 'image/webp'
+      contentType: 'image/avif'
     })
 
   if (errMini) throw errMini

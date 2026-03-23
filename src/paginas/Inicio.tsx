@@ -30,6 +30,29 @@ const TikTokIcon = ({ size = 24 }: { size?: number }) => (
   </svg>
 )
 
+const ImagenConSkeleton = ({ src, alt }: { src: string; alt: string }) => {
+  const [cargado, setCargado] = useState(false)
+
+  return (
+    <div className="relative w-full h-full bg-white/5">
+      {!cargado && (
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-shimmer" />
+        </div>
+      )}
+      <motion.img
+        src={src}
+        alt={alt}
+        onLoad={() => setCargado(true)}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: cargado ? 1 : 0 }}
+        transition={{ duration: 0.8 }}
+        className="w-full h-full object-cover"
+      />
+    </div>
+  )
+}
+
 const Inicio = () => {
   const { licores, cargando: licoresCargando } = useLicores()
   const { contenido, cargando: contenidoCargando } = useContenido()
@@ -37,6 +60,7 @@ const Inicio = () => {
   const [busqueda, setBusqueda] = useState('')
   const [categoriaSel, setCategoriaSel] = useState('Todas')
   const [licorHistoria, setLicorHistoria] = useState<any>(null)
+  const [limite, setLimite] = useState(8) // Mostrar 8 inicialmente
 
   const cargando = licoresCargando || contenidoCargando || catsCargando
 
@@ -47,6 +71,11 @@ const Inicio = () => {
     const coincideCategoria = categoriaSel === 'Todas' || l.categoria === categoriaSel
     return coincideNombre && coincideCategoria
   })
+
+  // Licores que se muestran realmente
+  const licoresVisibles = licoresFiltrados.slice(0, limite)
+
+  const mostrarMas = () => setLimite(prev => prev + 8)
 
   return (
     <div className="min-h-screen bg-negro-premium text-white">
@@ -128,42 +157,54 @@ const Inicio = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            <AnimatePresence mode="popLayout">
-              {licoresFiltrados.map((licor) => (
-                <motion.div
-                  layout
-                  key={licor.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  whileHover={{ y: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="group vidrio rounded-2xl overflow-hidden border border-white/10 hover:border-dorado/50 hover:shadow-[0_20px_40px_rgba(197,160,89,0.15)] transition-all duration-500 flex flex-col cursor-pointer"
-                  onClick={() => setLicorHistoria(licor)}
+          <div className="space-y-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+              <AnimatePresence mode="popLayout">
+                {licoresVisibles.map((licor) => (
+                  <motion.div
+                    layout
+                    key={licor.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    whileHover={{ y: -10 }}
+                    transition={{ duration: 0.3 }}
+                    className="group vidrio rounded-2xl overflow-hidden border border-white/10 hover:border-dorado/50 hover:shadow-[0_20px_40px_rgba(197,160,89,0.15)] transition-all duration-500 flex flex-col cursor-pointer"
+                    onClick={() => setLicorHistoria(licor)}
+                  >
+                    <div className="p-5 flex-grow flex flex-col">
+                      <div className="overflow-hidden rounded-xl mb-4 aspect-[3/4] sm:aspect-auto sm:h-52 lg:h-48 bg-white/5 relative">
+                        <ImagenConSkeleton 
+                          src={licor.thumbnail_url || licor.imagen_url} 
+                          alt={licor.nombre_licor} 
+                        />
+                      </div>
+                      <p className="text-dorado/70 text-[10px] uppercase tracking-widest font-bold mb-1">{licor.categoria}</p>
+                      <h3 className="text-lg font-bold mb-2 group-hover:text-dorado transition-colors duration-300 line-clamp-2">{licor.nombre_licor}</h3>
+                      <p className="text-white/50 text-sm line-clamp-2 mb-4 italic">"{licor.descripcion}"</p>
+                      <div className="mt-auto flex justify-between items-center">
+                        <span className="text-2xl font-black text-dorado">${licor.precio_venta.toLocaleString()}</span>
+                        <span className="text-xs uppercase tracking-tighter text-dorado border-b border-dorado/60 pb-0.5 md:opacity-0 md:group-hover:opacity-100 md:translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
+                          Ver Historia
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Pagination Button */}
+            {limite < licoresFiltrados.length && (
+              <div className="flex justify-center mt-12">
+                <button
+                  onClick={mostrarMas}
+                  className="bg-white/5 hover:bg-white/10 border border-white/10 px-8 py-3 rounded-full text-sm font-bold transition-all hover:border-dorado/40"
                 >
-                  <div className="p-5 flex-grow flex flex-col">
-                    <div className="overflow-hidden rounded-xl mb-4 aspect-[3/4] sm:aspect-auto sm:h-52 lg:h-48 bg-white/5">
-                      <img 
-                        src={licor.thumbnail_url || licor.imagen_url} 
-                        alt={licor.nombre_licor} 
-                        loading="lazy"
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                      />
-                    </div>
-                    <p className="text-dorado/70 text-[10px] uppercase tracking-widest font-bold mb-1">{licor.categoria}</p>
-                    <h3 className="text-lg font-bold mb-2 group-hover:text-dorado transition-colors duration-300 line-clamp-2">{licor.nombre_licor}</h3>
-                    <p className="text-white/50 text-sm line-clamp-2 mb-4 italic">"{licor.descripcion}"</p>
-                    <div className="mt-auto flex justify-between items-center">
-                      <span className="text-2xl font-black text-dorado">${licor.precio_venta.toLocaleString()}</span>
-                      <span className="text-xs uppercase tracking-tighter text-dorado border-b border-dorado/60 pb-0.5 md:opacity-0 md:group-hover:opacity-100 md:translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
-                        Ver Historia
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  Ver Más Productos
+                </button>
+              </div>
+            )}
           </div>
         )}
       </section>
