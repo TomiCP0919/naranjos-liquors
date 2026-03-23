@@ -6,7 +6,7 @@ import { useVentas, type Venta } from '../hooks/useVentas'
 import { usePerfiles } from '../hooks/usePerfiles'
 import { useContenido } from '../hooks/useContenido'
 import { useCategorias } from '../hooks/useCategorias'
-import * as XLSX from 'xlsx'
+
 import { supabase } from '../servicios/supabase'
 import { subirImagenLicor } from '../servicios/almacenamiento'
 import { useAutenticacion } from '../contextos/AutenticacionContexto'
@@ -198,7 +198,8 @@ const Admin = () => {
 
   const gananciaTotal = ventasFiltradas.reduce((acc, v) => acc + (v.precio_venta - (v.Info_Licores?.precio_compra || 0)), 0)
 
-  const exportarAExcel = () => {
+  const exportarAExcel = async () => {
+    const XLSX = await import('xlsx')
     const datosExportar: any[] = ventasFiltradas.map(v => {
       const precioCompra = v.Info_Licores?.precio_compra || 0;
       const ganancia = v.precio_venta - precioCompra;
