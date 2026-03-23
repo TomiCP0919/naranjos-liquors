@@ -143,10 +143,11 @@ const Inicio = () => {
                   onClick={() => setLicorHistoria(licor)}
                 >
                   <div className="p-5 flex-grow flex flex-col">
-                    <div className="overflow-hidden rounded-xl mb-4 aspect-[3/4] sm:aspect-auto sm:h-52 lg:h-48">
+                    <div className="overflow-hidden rounded-xl mb-4 aspect-[3/4] sm:aspect-auto sm:h-52 lg:h-48 bg-white/5">
                       <img 
-                        src={licor.imagen_url} 
+                        src={licor.thumbnail_url || licor.imagen_url} 
                         alt={licor.nombre_licor} 
+                        loading="lazy"
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                       />
                     </div>

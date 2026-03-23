@@ -11,6 +11,7 @@ export interface Licor {
   fecha_compra: string
   categoria: string
   imagen_url: string
+  thumbnail_url?: string
   stock: number
   is_active: boolean
   created_at: string

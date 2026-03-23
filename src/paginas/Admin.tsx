@@ -103,11 +103,15 @@ const Admin = () => {
   const guardarLicor = async (datos: DatosLicor) => {
     try {
       let urlFinal = licorEnEdicion?.imagen_url || ''
+      let urlThumb = licorEnEdicion?.thumbnail_url || ''
+
       if (archivoImagen) {
-        urlFinal = await subirImagenLicor(archivoImagen)
+        const { urlOriginal, urlMiniatura } = await subirImagenLicor(archivoImagen)
+        urlFinal = urlOriginal
+        urlThumb = urlMiniatura
       }
 
-      const infoFinal = { ...datos, imagen_url: urlFinal }
+      const infoFinal = { ...datos, imagen_url: urlFinal, thumbnail_url: urlThumb }
 
       if (licorEnEdicion) {
         const { error } = await supabase.from('Info_Licores').update(infoFinal).eq('id', licorEnEdicion.id)
@@ -491,7 +495,7 @@ const Admin = () => {
                       className="hover:bg-white/2 transition-colors border-b border-white/5 last:border-0"
                     >
                       <td className="px-6 py-4 flex items-center gap-4 min-w-[200px]">
-                        <img src={licor.imagen_url || ''} className="w-10 h-10 rounded-lg object-cover" />
+                        <img src={licor.thumbnail_url || licor.imagen_url || ''} className="w-10 h-10 rounded-lg object-cover" />
                         <div>
                           <p className="font-bold">{licor.nombre_licor}</p>
                           <p className="text-[10px] opacity-40 uppercase">{licor.categoria}</p>
