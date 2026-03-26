@@ -8,19 +8,19 @@ console.log("Servicio de notificación de registro iniciado");
 Deno.serve(async (req) => {
   // Manejar el preflight de CORS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { 
-      headers: { 
+    return new Response('ok', {
+      headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST',
         'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      } 
+      }
     })
   }
 
   try {
     const payload = await req.json()
     console.log("Recibido el payload de registro:", JSON.stringify(payload));
-    
+
     // El payload de un webhook de Supabase tiene la estructura: { type, table, record, schema, old_record }
     const { record } = payload
     const userEmail = record?.email || 'Desconocido'
@@ -47,9 +47,9 @@ Deno.serve(async (req) => {
               <p style="color: #888; margin-top: 5px;">Revisión de acceso requerida</p>
             </div>
             
-            <p style="font-size: 16px; line-height: 1.6;">Hola Administrador,</p>
+            <p style="font-size: 16px; line-height: 1.6;">Hola Laura,</p>
             <p style="font-size: 16px; line-height: 1.6;">
-              Un nuevo usuario se ha registrado en la plataforma y está **esperando tu autorización** para acceder. Accede a la paltaforma de administración para gestionar el acceso, apruebalo o deniegalo.
+              Un nuevo usuario ha enviado la solicitud de registro en la plataforma y está <strong>esperando tu autorización</strong> para acceder. Accede a la paltaforma de administración para gestionar el acceso, apruebalo o deniegalo.
             </p>
             
             <div style="background-color: #1a1a1a; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #d4af37;">
