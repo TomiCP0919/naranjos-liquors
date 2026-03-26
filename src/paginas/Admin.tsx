@@ -827,7 +827,7 @@ const Admin = () => {
                     <tr className="border-b border-white/10 text-white/40 text-sm">
                       <th className="py-3 px-4 font-normal">Correo Electrónico</th>
                       <th className="py-3 px-4 font-normal">Estado actual</th>
-                      <th className="py-3 px-4 font-normal">Fecha de Solicitud</th>
+                      <th className="py-3 px-4 font-normal">Fecha y hora de la solicitud</th>
                       <th className="py-3 px-4 text-right font-normal">Acciones Administrativas</th>
                     </tr>
                   </thead>
@@ -841,7 +841,7 @@ const Admin = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4 text-white/60">
-                          {new Date(p.created_at).toLocaleDateString()}
+                          {new Date(p.created_at).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}
                         </td>
                         <td className="py-3 px-4 text-right flex justify-end gap-2">
                           {p.estado !== 'aprobado' && (

@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
             
             <p style="font-size: 16px; line-height: 1.6;">Hola Laura,</p>
             <p style="font-size: 16px; line-height: 1.6;">
-              Un nuevo usuario ha enviado la solicitud de registro en la plataforma y está <strong>esperando tu autorización</strong> para acceder. Accede a la paltaforma de administración para gestionar el acceso, apruebalo o deniegalo.
+              Un nuevo usuario ha enviado la solicitud de registro en la plataforma y está <strong>esperando tu autorización</strong> para acceder. Accede a la plataforma de administración para gestionar el acceso, apruebalo o deniegalo.
             </p>
             
             <div style="background-color: #1a1a1a; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #d4af37;">

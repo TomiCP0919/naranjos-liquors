@@ -1,6 +1,6 @@
 import React, { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { Clock, XCircle, Loader2 } from 'lucide-react'
+import { Clock, XCircle, Loader2, AlertTriangle } from 'lucide-react'
 import { AnimatePresence } from 'framer-motion'
 // lazy loading de páginas
 const Inicio = lazy(() => import('./paginas/Inicio.tsx'))
@@ -46,6 +46,22 @@ const RutaProtegida: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           <p className="text-white/60 mb-8">Tu solicitud de acceso como administrador ha sido rechazada. Contacta a la dirección si crees que esto es un error.</p>
           <button onClick={cerrarSesion} className="w-full bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-400 font-bold py-3 rounded-xl transition-colors">
             Salir del Sistema
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Si no hay perfil (null) o el estado no es aprobado, bloqueamos el acceso
+  if (!perfil || perfil.estado !== 'aprobado') {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-negro-premium p-4 text-center">
+        <div className="vidrio p-8 rounded-2xl max-w-md w-full border border-yellow-500/20 shadow-2xl">
+          <AlertTriangle className="mx-auto text-yellow-500 mb-4" size={48} />
+          <h2 className="text-2xl font-bold mb-2 text-white">Acceso no autorizado</h2>
+          <p className="text-white/60 mb-8">No se ha encontrado una solicitud de acceso activa para esta cuenta. Por favor, regístrate de nuevo o contacta al administrador.</p>
+          <button onClick={cerrarSesion} className="w-full bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20 text-yellow-500 font-bold py-3 rounded-xl transition-colors">
+            Volver al Inicio
           </button>
         </div>
       </div>
