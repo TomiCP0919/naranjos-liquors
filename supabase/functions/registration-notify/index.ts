@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
             <div style="background-color: #1a1a1a; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #d4af37;">
               <p style="margin: 0; font-size: 14px; color: #d4af37; text-transform: uppercase; letter-spacing: 1px;">Datos del Usuario</p>
               <p style="margin: 10px 0 5px 0; font-size: 18px; font-weight: bold;">${userEmail}</p>
-              <p style="margin: 0; font-size: 13px; color: #666;">Registrado el: ${new Date(createdAt).toLocaleString('es-ES')}</p>
+              <p style="margin: 0; font-size: 13px; color: #666;">Registrado el: ${new Date(createdAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</p>
             </div>
             
             <div style="text-align: center; margin-top: 35px;">
