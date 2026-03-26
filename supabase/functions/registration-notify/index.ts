@@ -39,17 +39,36 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: 'Naranjos App <onboarding@resend.dev>',
         to: [ADMIN_EMAIL],
-        subject: '🔔 ¡Nuevo Registro de Usuario!',
+        subject: '🔐 Solicitud de Acceso Pendiente - Naranjo\'s Liquors',
         html: `
-          <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; background-color: #000; color: #fff;">
-            <h2 style="color: #d4af37;">Nuevo usuario registrado</h2>
-            <p>Se ha registrado un nuevo usuario en la plataforma:</p>
-            <ul style="list-style: none; padding: 0;">
-              <li><strong>Email:</strong> ${userEmail}</li>
-              <li><strong>Fecha:</strong> ${new Date(createdAt).toLocaleString('es-ES')}</li>
-            </ul>
-            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;" />
-            <p style="font-size: 11px; color: #888;">Notificación automática de Naranjo's Liquors</p>
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; border: 1px solid #d4af37; border-radius: 15px; background-color: #0b0b0b; color: #ffffff; max-width: 500px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 25px;">
+              <h1 style="color: #d4af37; margin: 0; font-size: 24px;">🔔 Nueva Solicitud</h1>
+              <p style="color: #888; margin-top: 5px;">Revisión de acceso requerida</p>
+            </div>
+            
+            <p style="font-size: 16px; line-height: 1.6;">Hola Administrador,</p>
+            <p style="font-size: 16px; line-height: 1.6;">
+              Un nuevo usuario se ha registrado en la plataforma y está **esperando tu autorización** para acceder. Accede a la paltaforma de administración para gestionar el acceso, apruebalo o deniegalo.
+            </p>
+            
+            <div style="background-color: #1a1a1a; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #d4af37;">
+              <p style="margin: 0; font-size: 14px; color: #d4af37; text-transform: uppercase; letter-spacing: 1px;">Datos del Usuario</p>
+              <p style="margin: 10px 0 5px 0; font-size: 18px; font-weight: bold;">${userEmail}</p>
+              <p style="margin: 0; font-size: 13px; color: #666;">Registrado el: ${new Date(createdAt).toLocaleString('es-ES')}</p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 35px;">
+              <a href="https://naranjos-liquors.vercel.app/admin" 
+                 style="background-color: #d4af37; color: #000; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; font-size: 16px; display: inline-block; transition: background 0.3s;">
+                Gestionar Acceso
+              </a>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;" />
+            <p style="font-size: 11px; color: #555; text-align: center;">
+              Este es un aviso automático de seguridad generado por el sistema de Naranjo's Liquors.
+            </p>
           </div>
         `,
       }),
