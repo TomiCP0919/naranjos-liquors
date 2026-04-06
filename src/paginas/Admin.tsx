@@ -17,7 +17,7 @@ import { esquemaLicor, esquemaContenido, type DatosLicor, type DatosContenido } 
 import Swal from 'sweetalert2'
 
 const Admin = () => {
-  const { licores, refrescar: refrescarLicores, cargando: licoresCargando } = useLicores()
+  const { licores, refrescar: refrescarLicores, cargando: licoresCargando } = useLicores(true)
   const { ventas, cargando: ventasCargando, agregarVenta, actualizarVenta, eliminarVenta } = useVentas()
   const { contenido, actualizarContenido } = useContenido()
   const { categorias: categoriasDB, agregarCategoria, eliminarCategoria } = useCategorias()
@@ -35,7 +35,7 @@ const Admin = () => {
     cliente_nombre: '',
     cliente_telefono: '',
     fecha_venta: new Date().toISOString().split('T')[0],
-    items: [] as { id_licor: string, cantidad: number, precio_unitario: number }[]
+    items: [] as { id_licor: string | null, cantidad: number, precio_unitario: number }[]
   })
 
   const fechaHoy = new Date().toISOString().split('T')[0]
@@ -95,7 +95,7 @@ const Admin = () => {
         cliente_nombre: '',
         cliente_telefono: '',
         fecha_venta: fechaHoy,
-        items: [{ id_licor: '', cantidad: 1, precio_unitario: 0 }]
+        items: [{ id_licor: null, cantidad: 1, precio_unitario: 0 }]
       })
     }
     setModalVentaAbierto(true)
@@ -131,22 +131,35 @@ const Admin = () => {
     }
   }
 
-  const eliminarLicor = async (id: string) => {
+  const toggleEstadoLicor = async (licor: Licor) => {
+    try {
+      const { error } = await supabase.from('Info_Licores').update({ is_active: !licor.is_active }).eq('id', licor.id)
+      if (error) throw error
+      await refrescarLicores()
+      Swal.fire('Actualizado', `Producto ${licor.is_active ? 'desactivado' : 'activado'}`, 'success')
+    } catch (err: any) {
+      Swal.fire('Error', err.message, 'error')
+    }
+  }
+
+  const eliminarLicorPermanente = async (id: string, nombre: string) => {
     const { isConfirmed } = await Swal.fire({
-      title: '¿Eliminar licor?',
-      text: "Esta acción no se puede deshacer",
+      title: `¿Eliminar ${nombre} PERMANENTEMENTE?`,
+      text: "Esta acción borrará el producto de la lista. El historial de ventas que ya lo tenga NO se verá afectado.",
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#c5a059',
-      confirmButtonText: 'Sí, eliminar'
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Sí, borrar de la base de datos'
     })
 
     if (isConfirmed) {
       const { error } = await supabase.from('Info_Licores').delete().eq('id', id)
-      if (error) Swal.fire('Error', error.message, 'error')
-      else {
+      if (error) {
+        // Si por alguna razón la migración no se completó o hay algo más, informamos
+        Swal.fire('Error', 'No se pudo eliminar: ' + error.message, 'error')
+      } else {
         await refrescarLicores()
-        Swal.fire('Eliminado', '', 'success')
+        Swal.fire('Eliminado', 'Producto borrado de la base de datos', 'success')
       }
     }
   }
@@ -262,10 +275,18 @@ const Admin = () => {
 
     const total_venta = formVenta.items.reduce((acc, item) => acc + (item.precio_unitario * item.cantidad), 0)
 
+    const itemsConSnapshots = formVenta.items.map(item => {
+      const licor = licores.find(l => l.id === item.id_licor)
+      return {
+        ...item,
+        nombre_licor_snapshot: licor?.nombre_licor || 'Licor Desconocido',
+        precio_compra_snapshot: licor?.precio_compra || 0
+      }
+    })
+
     let res;
     if (ventaEnEdicion) {
       // Para simplificar, en edición actualizamos los datos básicos. 
-      // Nota: Si se requiere editar los items, se necesitaría una lógica de borrado/inserción más compleja.
       res = await actualizarVenta(ventaEnEdicion.id, {
         cliente_nombre: formVenta.cliente_nombre,
         cliente_telefono: formVenta.cliente_telefono,
@@ -273,7 +294,7 @@ const Admin = () => {
         total_venta
       })
     } else {
-      res = await agregarVenta({ ...formVenta, total_venta })
+      res = await agregarVenta({ ...formVenta, items: itemsConSnapshots, total_venta })
     }
 
     if (res.success) {
@@ -421,10 +442,16 @@ const Admin = () => {
                   <Edit size={14} /> Editar
                 </button>
                 <button
-                  onClick={() => eliminarLicor(licor.id)}
+                  onClick={() => toggleEstadoLicor(licor)}
+                  className="flex-1 md:flex-none text-xs bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 px-4 py-2 rounded-lg transition-colors font-bold flex items-center justify-center gap-2 border border-orange-500/20"
+                >
+                  <Package size={14} /> Desactivar
+                </button>
+                <button
+                  onClick={() => eliminarLicorPermanente(licor.id, licor.nombre_licor)}
                   className="flex-1 md:flex-none text-xs bg-red-500/10 text-red-500 hover:bg-red-500/20 px-4 py-2 rounded-lg transition-colors font-bold flex items-center justify-center gap-2 border border-red-500/20"
                 >
-                  <Trash2 size={14} /> Eliminar
+                  <Trash2 size={14} /> Eliminar Permanente
                 </button>
               </div>
             </motion.div>
@@ -493,6 +520,7 @@ const Admin = () => {
                   <th className="px-6 py-4 text-center">Fecha Compra</th>
                   <th className="px-6 py-4 text-center">Compra</th>
                   <th className="px-6 py-4 text-center">Venta</th>
+                  <th className="px-6 py-4 text-center">Estado</th>
                   <th className="px-6 py-4 text-center">Stock</th>
                   <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
@@ -532,14 +560,22 @@ const Admin = () => {
                       <td className="px-6 py-4 text-center font-bold text-dorado">${licor.precio_compra.toLocaleString()}</td>
                       <td className="px-6 py-4 text-center font-bold text-dorado">${licor.precio_venta.toLocaleString()}</td>
                       <td className="px-6 py-4 text-center">
+                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${licor.is_active ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-white/40'}`}>
+                          {licor.is_active ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
                         <span className={`px-2 py-1 rounded-md ${licor.stock < 5 ? 'bg-red-500/20 text-red-400' : 'bg-white/5'}`}>
                           {licor.stock}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-1">
-                          <button onClick={() => abrirModal(licor)} className="p-2 hover:text-dorado"><Edit size={16} /></button>
-                          <button onClick={() => eliminarLicor(licor.id)} className="p-2 hover:text-red-400"><Trash2 size={16} /></button>
+                          <button onClick={() => toggleEstadoLicor(licor)} className={`p-2 transition-colors ${licor.is_active ? 'hover:text-orange-400' : 'hover:text-green-400'}`} title={licor.is_active ? 'Desactivar' : 'Activar'}>
+                            <Package size={16} />
+                          </button>
+                          <button onClick={() => abrirModal(licor)} className="p-2 hover:text-dorado transition-colors" title="Editar"><Edit size={16} /></button>
+                          <button onClick={() => eliminarLicorPermanente(licor.id, licor.nombre_licor)} className="p-2 hover:text-red-400 transition-colors" title="Eliminar Permanente"><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </motion.tr>
@@ -701,7 +737,7 @@ const Admin = () => {
                 ) : (
                   ventasFiltradas.map((venta, index) => {
                     const gananciaTotalVenta = venta.items.reduce((acc, item) => {
-                      const costo = item.Info_Licores?.precio_compra || 0
+                      const costo = item.Info_Licores?.precio_compra || item.precio_compra_snapshot || 0
                       return acc + ((item.precio_unitario - costo) * item.cantidad)
                     }, 0)
 
@@ -733,7 +769,7 @@ const Admin = () => {
                           <div className="flex flex-col gap-1">
                             {venta.items.map((item, i) => (
                               <span key={i} className="text-sm">
-                                {item.cantidad}x {item.Info_Licores?.nombre_licor || 'Licor Eliminado'}
+                                {item.cantidad}x {item.Info_Licores?.nombre_licor || item.nombre_licor_snapshot || 'Licor Eliminado'}
                               </span>
                             ))}
                           </div>
@@ -741,7 +777,7 @@ const Admin = () => {
                         <td className="px-6 py-4 text-center">
                           <div className="flex flex-col gap-1">
                             {venta.items.map((item, i) => {
-                              const costoUnit = item.Info_Licores?.precio_compra || 0
+                              const costoUnit = item.Info_Licores?.precio_compra || item.precio_compra_snapshot || 0
                               return (
                                 <span key={i} className="text-sm text-dorado font-bold">
                                   ${(costoUnit * item.cantidad).toLocaleString()}
@@ -774,7 +810,7 @@ const Admin = () => {
                         <td className="px-6 py-4 text-center">
                           <div className="flex flex-col gap-1">
                             {venta.items.map((item, i) => {
-                              const costoItem = item.Info_Licores?.precio_compra || 0
+                              const costoItem = item.Info_Licores?.precio_compra || item.precio_compra_snapshot || 0
                               const gananciaIt = (item.precio_unitario - costoItem) * item.cantidad
                               return (
                                 <span key={i} className="text-sm text-green-400 font-bold">
@@ -1002,17 +1038,22 @@ const Admin = () => {
                       <div className="space-y-1">
                         <select
                           required
-                          value={item.id_licor}
+                          value={item.id_licor || ''}
                           onChange={e => {
-                            const licor = licores.find(l => l.id === e.target.value)
+                            const val = e.target.value === '' ? null : e.target.value
+                            const licor = licores.find(l => l.id === val)
                             const newItems = [...formVenta.items]
-                            newItems[index] = { ...newItems[index], id_licor: e.target.value, precio_unitario: licor?.precio_venta || 0 }
+                            newItems[index] = { ...newItems[index], id_licor: val, precio_unitario: licor?.precio_venta || 0 }
                             setFormVenta({ ...formVenta, items: newItems })
                           }}
                           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-dorado focus:outline-none appearance-none"
                         >
                           <option value="" disabled className="bg-negro-premium">Elegir licor...</option>
-                          {licores.map(l => <option key={l.id} value={l.id} className="bg-negro-premium">{l.nombre_licor} (${l.precio_venta.toLocaleString()})</option>)}
+                          {licores.map(l => (
+                            <option key={l.id} value={l.id} className="bg-negro-premium">
+                              {l.nombre_licor} {l.is_active ? '' : '(INACTIVO)'} (${l.precio_venta.toLocaleString()})
+                            </option>
+                          ))}
                         </select>
                       </div>
 

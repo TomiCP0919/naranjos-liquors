@@ -8,4 +8,26 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            // EXCLUIR XLSX para evitar stubs de 0.4kb
+            if (id.includes('xlsx')) return;
+
+            if (id.includes('lucide-react')) return 'icons'
+            if (id.includes('framer-motion')) return 'animations'
+            if (id.includes('@supabase')) return 'supabase'
+            if (id.includes('sweetalert2')) return 'ui-lib'
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'framework'
+
+            return 'vendor'
+          }
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000,
+    emptyOutDir: true
+  }
 })

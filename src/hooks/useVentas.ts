@@ -4,9 +4,11 @@ import { supabase } from '../servicios/supabase'
 export interface VentaItem {
   id: string
   id_venta: string
-  id_licor: string
+  id_licor: string | null
   cantidad: number
   precio_unitario: number
+  nombre_licor_snapshot?: string
+  precio_compra_snapshot?: number
   Info_Licores?: {
     nombre_licor: string
     precio_compra: number
@@ -66,7 +68,13 @@ export const useVentas = () => {
     cliente_telefono: string
     fecha_venta: string
     total_venta: number
-    items: { id_licor: string, cantidad: number, precio_unitario: number }[]
+    items: { 
+      id_licor: string | null, 
+      cantidad: number, 
+      precio_unitario: number,
+      nombre_licor_snapshot?: string,
+      precio_compra_snapshot?: number
+    }[]
   }) => {
     try {
       // 1. Crear la venta principal

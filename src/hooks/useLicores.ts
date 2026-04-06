@@ -17,7 +17,7 @@ export interface Licor {
   created_at: string
 }
 
-export const useLicores = () => {
+export const useLicores = (mostrarTodos = false) => {
   const [licores, setLicores] = useState<Licor[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,11 +25,13 @@ export const useLicores = () => {
   const obtenerLicores = async () => {
     try {
       setCargando(true)
-      const { data, error } = await supabase
-        .from('Info_Licores')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
+      let query = supabase.from('Info_Licores').select('*')
+      
+      if (!mostrarTodos) {
+        query = query.eq('is_active', true)
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false })
 
       if (error) throw error
       setLicores(data || [])
@@ -46,3 +48,4 @@ export const useLicores = () => {
 
   return { licores, cargando, error, refrescar: obtenerLicores }
 }
+
