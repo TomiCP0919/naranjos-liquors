@@ -216,7 +216,7 @@ const Admin = () => {
 
   const gananciaTotal = ventasFiltradas.reduce((acc, v) => {
     const gananciaVenta = v.items.reduce((sum, item) => {
-      const costo = item.Info_Licores?.precio_compra || 0
+      const costo = item.Info_Licores?.precio_compra || item.precio_compra_snapshot || 0
       return sum + ((item.precio_unitario - costo) * item.cantidad)
     }, 0)
     return acc + gananciaVenta
@@ -226,7 +226,7 @@ const Admin = () => {
     const XLSX = await import('xlsx')
     const datosExportar: any[] = ventasFiltradas.map(v => {
       const gananciaTotalVenta = v.items.reduce((acc, item) => {
-        const costo = item.Info_Licores?.precio_compra || 0
+        const costo = item.Info_Licores?.precio_compra || item.precio_compra_snapshot || 0
         return acc + ((item.precio_unitario - costo) * item.cantidad)
       }, 0)
 
