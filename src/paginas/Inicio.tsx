@@ -93,26 +93,63 @@ const Inicio = () => {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.2,
+                delayChildren: 0.3,
+              }
+            }
+          }}
+          initial="hidden"
+          animate="visible"
           className="relative z-20 text-center px-4 mt-16 md:mt-0"
         >
-          <h1 className="text-5xl md:text-8xl font-black mb-4 gradiente-dorado uppercase">
-            {contenido?.titulo_principal || "NARANJO'S"}
-          </h1>
-          <p className="text-xl md:text-2xl text-white/70 font-light tracking-[0.3em] uppercase mb-4">
-            {contenido?.descripcion_marca || "La Excelencia en Cada Gota"}
-          </p>
-          <p className="text-dorado/60 italic mb-8 max-w-2xl mx-auto">
-            {contenido?.mensaje_bienvenida}
-          </p>
-          <a
-            href="#catalogo"
-            className="bg-dorado hover:bg-dorado-brillante text-negro-premium px-8 py-4 rounded-full font-bold transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(197,160,89,0.3)]"
+          <motion.h1 
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+            }}
+            className="text-5xl md:text-8xl font-black mb-4 gradiente-dorado uppercase"
           >
-            Explorar Catálogo
-          </a>
+            {contenido?.titulo_principal}
+          </motion.h1>
+
+          <motion.p 
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+            }}
+            className="text-xl md:text-2xl text-white/70 font-light tracking-[0.3em] uppercase mb-4"
+          >
+            {contenido?.descripcion_marca}
+          </motion.p>
+
+          <motion.p 
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+            }}
+            className="text-dorado/60 italic mb-8 max-w-2xl mx-auto"
+          >
+            {contenido?.mensaje_bienvenida}
+          </motion.p>
+
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 30 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+            }}
+          >
+            <a
+              href="#catalogo"
+              className="inline-block bg-dorado hover:bg-dorado-brillante text-negro-premium px-8 py-4 rounded-full font-bold transition-all duration-300 ease-in-out transform hover:scale-105 shadow-[0_0_20px_rgba(197,160,89,0.3)]"
+            >
+              Explorar Catálogo
+            </a>
+          </motion.div>
         </motion.div>
       </header>
 
@@ -174,9 +211,9 @@ const Inicio = () => {
                   >
                     <div className="p-5 flex-grow flex flex-col">
                       <div className="overflow-hidden rounded-xl mb-4 aspect-[3/4] sm:aspect-auto sm:h-52 lg:h-48 bg-white/5 relative">
-                        <ImagenConSkeleton 
-                          src={licor.thumbnail_url || licor.imagen_url} 
-                          alt={licor.nombre_licor} 
+                        <ImagenConSkeleton
+                          src={licor.thumbnail_url || licor.imagen_url}
+                          alt={licor.nombre_licor}
                         />
                       </div>
                       <p className="text-dorado/70 text-[10px] uppercase tracking-widest font-bold mb-1">{licor.categoria}</p>
