@@ -20,7 +20,7 @@ const Admin = () => {
   const { licores, refrescar: refrescarLicores, cargando: licoresCargando } = useLicores(true)
   const { ventas, cargando: ventasCargando, agregarVenta, actualizarVenta, eliminarVenta } = useVentas()
   const { contenido, actualizarContenido } = useContenido()
-  const { categorias: categoriasDB, agregarCategoria, eliminarCategoria } = useCategorias()
+  const { categorias: categoriasDB, agregarCategoria, eliminarCategoria, editarCategoria } = useCategorias()
   const { cerrarSesion } = useAutenticacion()
   const { perfiles, cargando: perfilesCargando, cambiarEstado, eliminarPerfil } = usePerfiles()
 
@@ -205,6 +205,33 @@ const Admin = () => {
       const res = await eliminarCategoria(id)
       if (res.success) Swal.fire('Eliminado', '', 'success')
       else Swal.fire('Error', res.error || 'No se pudo eliminar', 'error')
+    }
+  }
+
+  const handleEditarCategoria = async (id: string, nombreAntiguo: string) => {
+    const { value: nuevoNombre } = await Swal.fire({
+      title: 'Editar Categoría',
+      input: 'text',
+      inputLabel: 'Nuevo nombre para la categoría',
+      inputValue: nombreAntiguo,
+      showCancelButton: true,
+      confirmButtonColor: '#c5a059',
+      cancelButtonText: 'Cancelar',
+      confirmButtonText: 'Guardar Cambios',
+      inputValidator: (value) => {
+        if (!value) return '¡El nombre no puede estar vacío!'
+      }
+    })
+
+    if (nuevoNombre && nuevoNombre !== nombreAntiguo) {
+      const res = await editarCategoria(id, nuevoNombre, nombreAntiguo)
+      if (res.success) {
+        // Refrescamos los licores por si alguno cambió de categoría internamente
+        await refrescarLicores()
+        Swal.fire('¡Éxito!', 'Categoría y licores actualizados', 'success')
+      } else {
+        Swal.fire('Error', res.error || 'No se pudo editar', 'error')
+      }
     }
   }
 
@@ -611,7 +638,14 @@ const Admin = () => {
               {categoriasDB.map(cat => (
                 <div key={cat.id} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 group hover:border-dorado/30 transition-all">
                   <span className="font-medium">{cat.nombre}</span>
-                  <button onClick={() => handleEliminarCategoria(cat.id, cat.nombre)} className="text-white/20 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition-all"><Trash2 size={16} /></button>
+                  <div className="flex gap-1">
+                    <button onClick={() => handleEditarCategoria(cat.id, cat.nombre)} className="text-white/20 hover:text-dorado p-2 rounded-lg hover:bg-dorado/10 transition-all">
+                      <Edit size={16} />
+                    </button>
+                    <button onClick={() => handleEliminarCategoria(cat.id, cat.nombre)} className="text-white/20 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition-all">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

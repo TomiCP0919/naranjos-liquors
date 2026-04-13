@@ -59,9 +59,42 @@ export const useCategorias = () => {
     }
   }
 
+  const editarCategoria = async (id: string, nuevoNombre: string, nombreAntiguo: string) => {
+    try {
+      // 1. Actualizar tabla de categorías
+      const { error: errCat } = await supabase
+        .from('categorias')
+        .update({ nombre: nuevoNombre })
+        .eq('id', id)
+
+      if (errCat) throw errCat
+
+      // 2. Actualizar en cascada todos los licores (bulk update por texto)
+      const { error: errLicores } = await supabase
+        .from('Info_Licores')
+        .update({ categoria: nuevoNombre })
+        .eq('categoria', nombreAntiguo)
+
+      if (errLicores) throw errLicores
+
+      await obtenerCategorias()
+      return { success: true }
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  }
+
   useEffect(() => {
     obtenerCategorias()
   }, [])
 
-  return { categorias, cargando, error, refrescar: obtenerCategorias, agregarCategoria, eliminarCategoria }
+  return { 
+    categorias, 
+    cargando, 
+    error, 
+    refrescar: obtenerCategorias, 
+    agregarCategoria, 
+    eliminarCategoria,
+    editarCategoria
+  }
 }

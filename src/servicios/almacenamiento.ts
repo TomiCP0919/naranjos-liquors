@@ -7,12 +7,16 @@ import { generarMiniatura } from '../utilidades/imagenes'
  * 2. Miniatura: Una versión optimizada en AVIF para la vitrina/catálogo.
  */
 export const subirImagenLicor = async (archivo: File) => {
-  const nombreBase = archivo.name.split('.').slice(0, -1).join('.')
-  const extension = archivo.name.split('.').pop()
+  // Generamos un ID corto y único para evitar errores de longitud de nombre (común en móviles)
+  const idUnico = (typeof crypto.randomUUID !== 'undefined') 
+    ? crypto.randomUUID().split('-')[0] 
+    : Math.random().toString(36).substring(2, 10)
+  
+  const extension = archivo.name.split('.').pop() || 'jpg'
   const timestamp = Date.now()
   
-  // 1. Subir ARCHIVO ORIGINAL (Máxima calidad, sin cambios)
-  const nombreOriginal = `${timestamp}-${nombreBase}-full.${extension}`
+  // 1. Subir ARCHIVO ORIGINAL
+  const nombreOriginal = `${timestamp}-${idUnico}-full.${extension}`
   const { data: dataOrig, error: errOrig } = await supabase.storage
     .from('licores')
     .upload(nombreOriginal, archivo)
@@ -21,7 +25,7 @@ export const subirImagenLicor = async (archivo: File) => {
 
   // 2. Subir MINIATURA OPTIMIZADA (Para rapidez en la lista)
   const blobMini = await generarMiniatura(archivo)
-  const nombreMini = `${timestamp}-${nombreBase}-thumb.avif`
+  const nombreMini = `${timestamp}-${idUnico}-thumb.avif`
   const { data: dataMini, error: errMini } = await supabase.storage
     .from('licores')
     .upload(nombreMini, blobMini, {
