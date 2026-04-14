@@ -218,7 +218,7 @@ const Inicio = () => {
                       </div>
                       <p className="text-dorado/70 text-[10px] uppercase tracking-widest font-bold mb-1">{licor.categoria}</p>
                       <h3 className="text-lg font-bold mb-2 group-hover:text-dorado transition-colors duration-300 line-clamp-2">{licor.nombre_licor}</h3>
-                      <p className="text-white/50 text-sm line-clamp-2 mb-4 italic">"{licor.descripcion}"</p>
+                      <p className="text-white/50 text-sm whitespace-pre-wrap mb-4 italic">"{licor.descripcion}"</p>
                       <div className="mt-auto flex justify-between items-center">
                         <span className="text-2xl font-black text-dorado">${licor.precio_venta.toLocaleString()}</span>
                         <span className="text-xs uppercase tracking-tighter text-dorado border-b border-dorado/60 pb-0.5 md:opacity-0 md:group-hover:opacity-100 md:translate-y-2 md:group-hover:translate-y-0 transition-all duration-300">
@@ -306,7 +306,7 @@ const Inicio = () => {
                   </h2>
 
                   <div className="mb-6">
-                    <p className="text-base md:text-lg text-white/75 leading-relaxed italic">
+                    <p className="text-base md:text-lg text-white/75 leading-relaxed italic whitespace-pre-wrap">
                       "{licorHistoria.historia || 'Este licor guarda secretos que solo el tiempo sabe revelar. Una joya de nuestra colección privada lista para ser descubierta.'}"
                     </p>
                   </div>
