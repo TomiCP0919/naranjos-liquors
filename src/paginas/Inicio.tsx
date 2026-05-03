@@ -260,7 +260,7 @@ const Inicio = () => {
             <a href="https://www.facebook.com/profile.php?id=61571331639085&locale=es_LA" target="_blank" className="hover:text-dorado hover:scale-125 transition-all">
               <Facebook size={32} />
             </a>
-            <a href="https://tiktok.com" target="_blank" className="hover:text-dorado hover:scale-125 transition-all">
+            <a href="https://www.tiktok.com/@naranjos.liquors" target="_blank" className="hover:text-dorado hover:scale-125 transition-all">
               <Music2 size={32} />
             </a>
           </div>
@@ -361,7 +361,7 @@ const Inicio = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          href="https://tiktok.com"
+          href="https://www.tiktok.com/@naranjos.liquors"
           target="_blank"
           className="w-14 h-14 bg-black text-white flex items-center justify-center rounded-full border border-white/20 shadow-[0_4px_15px_rgba(0,0,0,0.4)] hover:shadow-[0_4px_25px_rgba(0,0,0,0.6)] transition-all"
         >
